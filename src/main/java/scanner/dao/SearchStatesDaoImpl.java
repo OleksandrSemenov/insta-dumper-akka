@@ -18,7 +18,7 @@ public class SearchStatesDaoImpl implements SearchStatesDao {
     @Override
     public SearchState getFirstAvailable() {
         try {
-            return (SearchState) getSession().createQuery("SELECT s FROM SearchState s WHERE s.isScanned = false").setMaxResults(1).getSingleResult();
+            return (SearchState) getSession().createQuery("SELECT s FROM SearchState s WHERE s.isScanned = false ORDER BY s.id").setMaxResults(1).getSingleResult();
         } catch (NoResultException e) {
             logger.error(e);
         }

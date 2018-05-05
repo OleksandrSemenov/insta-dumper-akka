@@ -7,12 +7,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.FakeUserWorker;
 import scanner.ManageSearchState;
 import scanner.Scanner;
@@ -22,12 +24,15 @@ import scanner.dao.UsersDaoImpl;
 import scanner.dao.interfaces.FakeUsersDao;
 import scanner.dao.interfaces.SearchStatesDao;
 import scanner.dao.interfaces.UsersDao;
+import scanner.repository.SearchStateRepository;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories("scanner.repository")
 public class Config {
     @Bean
     @Scope(value = "prototype")
@@ -45,7 +50,7 @@ public class Config {
 
     @Bean
     public ManageSearchState getManageSearchState(){
-        return new ManageSearchState(getSearchStateDaoImpl());
+        return new ManageSearchState();
     }
 
     @Bean
@@ -87,26 +92,6 @@ public class Config {
     @Bean
     public PersistenceExceptionTranslationPostProcessor exceptionTranslation(){
         return new PersistenceExceptionTranslationPostProcessor();
-    }
-
-    @Bean
-    public FakeUsersDao getFakeUserDaoImpl(){
-        return new FakeUsersDaoImpl();
-    }
-
-    @Bean
-    public SearchStatesDao getSearchStateDaoImpl(){
-        return new SearchStatesDaoImpl();
-    }
-
-    @Bean
-    public UsersDao getUserDaoImpl(){
-        return new UsersDaoImpl();
-    }
-
-    @Bean
-    public FakeUsersDao fakeUsersDao(){
-        return new FakeUsersDaoImpl();
     }
 
     private Properties getHibernateProperties() {

@@ -11,6 +11,7 @@ import scanner.dao.interfaces.FakeUsersDao;
 import scanner.dao.interfaces.SearchStatesDao;
 import scanner.entities.FakeUser;
 import scanner.entities.SearchState;
+import scanner.repository.SearchStateRepository;
 
 import javax.persistence.EntityManager;
 
@@ -20,7 +21,7 @@ public class Main implements CommandLineRunner {
     private Scanner scanner;
 
     @Autowired
-    private SearchStatesDao searchStatesDao;
+    private SearchStateRepository searchStateRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

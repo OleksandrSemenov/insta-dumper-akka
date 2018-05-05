@@ -10,19 +10,24 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.dao.interfaces.SearchStatesDao;
 import scanner.entities.SearchState;
+import scanner.repository.SearchStateRepository;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 
 public class ManageSearchState {
     private SearchState searchState;
-    private SearchStatesDao searchStatesDao;
+    @Autowired
+    private SearchStateRepository searchStateRepository;
     private final Logger logger = Logger.getLogger(ManageSearchState.class);
 
-    @Autowired
-    public ManageSearchState(SearchStatesDao searchStatesDao) {
-        this.searchStatesDao = searchStatesDao;
-        searchState = searchStatesDao.getFirstAvailable();
+    public ManageSearchState() { }
+
+    @PostConstruct
+    private void init() {
+        searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
+        System.out.println(searchState.getUserName() + " " + searchState.getId());
     }
 
     public synchronized List<InstagramUserSummary> getUsers(Instagram4j instagram) {
@@ -31,8 +36,8 @@ public class ManageSearchState {
 
         if(scanUser.getUser() == null) {
             logger.error(searchState.getUserName());
-            searchStatesDao.delete(searchState);
-            searchState = searchStatesDao.getFirstAvailable();
+            searchStateRepository.delete(searchState);
+            searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
             return null;
         }
 
@@ -48,10 +53,10 @@ public class ManageSearchState {
 
         if(searchState.getNextMaxId() == null) {
             searchState.setScanned(true);
-            searchStatesDao.update(searchState);
-            searchState = searchStatesDao.getFirstAvailable();
+            searchStateRepository.save(searchState);
+            searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
         } else {
-            searchStatesDao.update(searchState);
+            searchStateRepository.save(searchState);
         }
         logger.info("   --- FINISH ---");
         return users;

@@ -14,6 +14,8 @@ import scanner.dao.interfaces.SearchStatesDao;
 import scanner.dao.interfaces.UsersDao;
 import scanner.entities.SearchState;
 import scanner.entities.User;
+import scanner.repository.SearchStateRepository;
+import scanner.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,9 +23,9 @@ import java.util.List;
 public class FakeUserWorker extends Thread {
     private Instagram4j instagram;
     @Autowired
-    private SearchStatesDao searchStatesDao;
+    private SearchStateRepository searchStateRepository;
     @Autowired
-    private UsersDao usersDao;
+    private UserRepository userRepository;
     @Autowired
     private ManageSearchState manageSearchState;
     private final int SLEEP_ONE_SECOND = 1000;
@@ -70,8 +72,8 @@ public class FakeUserWorker extends Thread {
     }
 
     private void addUser(InstagramUser instagramUser) {
-        if (!usersDao.isExist(instagramUser.username)) {
-            usersDao.add(new User(instagramUser.username,
+        if (!userRepository.existsByUserName(instagramUser.username)) {
+            userRepository.save(new User(instagramUser.username,
                     instagramUser.full_name,
                     instagramUser.public_email,
                     instagramUser.public_phone_number,
@@ -84,8 +86,8 @@ public class FakeUserWorker extends Thread {
     }
 
     private void addSearchState(InstagramUser instagramUser) {
-        if (!searchStatesDao.isExist(instagramUser.username)) {
-            searchStatesDao.add(new SearchState(instagramUser.username, null, false));
+        if (!searchStateRepository.existsByUserName(instagramUser.username)) {
+            searchStateRepository.save(new SearchState(instagramUser.username, null, false));
         }
     }
 
