@@ -14,6 +14,7 @@ import scanner.repository.SearchStateRepository;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ManageSearchState {
@@ -21,13 +22,19 @@ public class ManageSearchState {
     @Autowired
     private SearchStateRepository searchStateRepository;
     private final Logger logger = Logger.getLogger(ManageSearchState.class);
+    private volatile List<InstagramUserSummary> reserveUsers;
 
-    public ManageSearchState() { }
+    public ManageSearchState() {
+        reserveUsers = new ArrayList<>();
+    }
 
     @PostConstruct
     private void init() {
         searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
-        System.out.println(searchState.getUserName() + " " + searchState.getId());
+    }
+
+    public synchronized void addUsers(List<InstagramUserSummary> users) {
+        reserveUsers.addAll(users);
     }
 
     public synchronized List<InstagramUserSummary> getUsers(Instagram4j instagram) {
@@ -49,6 +56,12 @@ public class ManageSearchState {
         }
 
         List<InstagramUserSummary> users = githubFollowersResult.getUsers();
+
+        if(!reserveUsers.isEmpty()) {
+            users.addAll(reserveUsers);
+            reserveUsers = new ArrayList<>();
+        }
+
         searchState.setNextMaxId(githubFollowersResult.getNext_max_id());
 
         if(searchState.getNextMaxId() == null) {

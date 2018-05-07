@@ -18,6 +18,7 @@ import scanner.repository.SearchStateRepository;
 import scanner.repository.UserRepository;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.List;
 
 public class FakeUserWorker extends Thread {
@@ -40,13 +41,15 @@ public class FakeUserWorker extends Thread {
 
     @Override
     public void run() {
-        login();
+        if(!login()) {
+            return;
+        }
 
-        //while(true) {
+        try {
+            //while(true) {
             do {
                 users = manageSearchState.getUsers(instagram);
             } while (users == null);
-
             for (InstagramUserSummary user : users) {
                 InstagramSearchUsernameResult follower = getUser(user.getUsername());
                 InstagramUser instagramUser = follower.getUser();
@@ -56,8 +59,11 @@ public class FakeUserWorker extends Thread {
             }
 
             logger.error("   ---Work done --- " + users.size());
-
-        //}
+            throw new SocketException();
+            //}
+        } catch (Exception e) {
+            logger.error("socket exception", e);
+        }
     }
 
     private InstagramSearchUsernameResult getUser(String userName) {
@@ -99,12 +105,15 @@ public class FakeUserWorker extends Thread {
         }
     }
 
-    private void login() {
+    private boolean login() {
         instagram.setup();
         try {
             instagram.login();
+            return true;
         } catch (IOException e) {
             logger.error("login failed", e);
         }
+
+        return false;
     }
 }
