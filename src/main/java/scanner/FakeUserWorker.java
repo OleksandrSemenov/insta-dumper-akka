@@ -2,23 +2,17 @@ package scanner;
 
 import org.apache.log4j.Logger;
 import org.brunocvcunha.instagram4j.Instagram4j;
-import org.brunocvcunha.instagram4j.requests.InstagramGetUserFollowersRequest;
 import org.brunocvcunha.instagram4j.requests.InstagramSearchUsernameRequest;
-import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import scanner.dao.interfaces.SearchStatesDao;
-import scanner.dao.interfaces.UsersDao;
 import scanner.entities.SearchState;
 import scanner.entities.User;
 import scanner.repository.SearchStateRepository;
 import scanner.repository.UserRepository;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.List;
 
 public class FakeUserWorker extends Thread {
@@ -28,7 +22,7 @@ public class FakeUserWorker extends Thread {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private ManageSearchState manageSearchState;
+    private SearchStateManager manageSearchState;
     private final int SLEEP_ONE_SECOND = 1000;
     private List<InstagramUserSummary> users;
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
@@ -41,28 +35,27 @@ public class FakeUserWorker extends Thread {
 
     @Override
     public void run() {
-        if(!login()) {
+        if (!login()) {
             return;
         }
 
-        try {
-            //while(true) {
-            do {
-                users = manageSearchState.getUsers(instagram);
-            } while (users == null);
-            for (InstagramUserSummary user : users) {
-                InstagramSearchUsernameResult follower = getUser(user.getUsername());
-                InstagramUser instagramUser = follower.getUser();
-                addSearchState(instagramUser);
-                addUser(instagramUser);
-                wait(SLEEP_ONE_SECOND);
-            }
+        while (true) {
+            try {
+                do {
+                    users = manageSearchState.getUsers(instagram);
+                } while (users == null);
+                for (InstagramUserSummary user : users) {
+                    InstagramSearchUsernameResult follower = getUser(user.getUsername());
+                    InstagramUser instagramUser = follower.getUser();
+                    addSearchState(instagramUser);
+                    addUser(instagramUser);
+                    wait(SLEEP_ONE_SECOND);
+                }
 
-            logger.error("   ---Work done --- " + users.size());
-            throw new SocketException();
-            //}
-        } catch (Exception e) {
-            logger.error("socket exception", e);
+                logger.error("   ---Work done --- " + users.size());
+            } catch (Exception e) {
+                logger.error("socket exception", e);
+            }
         }
     }
 

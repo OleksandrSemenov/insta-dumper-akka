@@ -16,15 +16,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.FakeUserWorker;
-import scanner.ManageSearchState;
+import scanner.SearchStateManager;
 import scanner.Scanner;
-import scanner.dao.FakeUsersDaoImpl;
-import scanner.dao.SearchStatesDaoImpl;
-import scanner.dao.UsersDaoImpl;
-import scanner.dao.interfaces.FakeUsersDao;
-import scanner.dao.interfaces.SearchStatesDao;
-import scanner.dao.interfaces.UsersDao;
-import scanner.repository.SearchStateRepository;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -49,8 +42,8 @@ public class Config {
     }
 
     @Bean
-    public ManageSearchState getManageSearchState(){
-        return new ManageSearchState();
+    public SearchStateManager getManageSearchState(){
+        return new SearchStateManager();
     }
 
     @Bean

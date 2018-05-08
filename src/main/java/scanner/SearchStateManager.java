@@ -8,7 +8,6 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersRe
 import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.springframework.beans.factory.annotation.Autowired;
-import scanner.dao.interfaces.SearchStatesDao;
 import scanner.entities.SearchState;
 import scanner.repository.SearchStateRepository;
 
@@ -17,14 +16,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ManageSearchState {
+public class SearchStateManager {
     private SearchState searchState;
     @Autowired
     private SearchStateRepository searchStateRepository;
-    private final Logger logger = Logger.getLogger(ManageSearchState.class);
+    private final Logger logger = Logger.getLogger(SearchStateManager.class);
     private volatile List<InstagramUserSummary> reserveUsers;
 
-    public ManageSearchState() {
+    public SearchStateManager() {
         reserveUsers = new ArrayList<>();
     }
 
