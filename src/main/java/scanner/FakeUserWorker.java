@@ -35,7 +35,10 @@ public class FakeUserWorker extends Thread {
 
     @Override
     public void run() {
-        if (!login()) {
+        try {
+            login();
+        } catch (IOException e) {
+            logger.error("login failed", e);
             return;
         }
 
@@ -98,15 +101,8 @@ public class FakeUserWorker extends Thread {
         }
     }
 
-    private boolean login() {
+    private void login() throws IOException {
         instagram.setup();
-        try {
-            instagram.login();
-            return true;
-        } catch (IOException e) {
-            logger.error("login failed", e);
-        }
-
-        return false;
+        instagram.login();
     }
 }
