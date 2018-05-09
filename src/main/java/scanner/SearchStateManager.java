@@ -9,20 +9,26 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResu
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.entities.SearchState;
+import scanner.entities.User;
 import scanner.repository.SearchStateRepository;
+import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
+import javax.jws.soap.SOAPBinding;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SearchStateManager {
     private SearchState searchState;
     @Autowired
     private SearchStateRepository searchStateRepository;
+    @Autowired
+    private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(SearchStateManager.class);
     private volatile List<InstagramUserSummary> reserveUsers;
-
+    private ConcurrentHashMap<String, User> foundUsers;
     public SearchStateManager() {
         reserveUsers = new ArrayList<>();
     }
@@ -30,10 +36,15 @@ public class SearchStateManager {
     @PostConstruct
     private void init() {
         searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
+        foundUsers = initFoundUsers();
     }
 
     public synchronized void addUsers(List<InstagramUserSummary> users) {
         reserveUsers.addAll(users);
+    }
+
+    public ConcurrentHashMap<String, User> getFoundUsers() {
+        return foundUsers;
     }
 
     public synchronized List<InstagramUserSummary> getUsers(Instagram4j instagram) {
@@ -94,5 +105,14 @@ public class SearchStateManager {
         }
 
         return followersResult;
+    }
+
+    private ConcurrentHashMap<String, User> initFoundUsers() {
+        ConcurrentHashMap<String, User> result = new ConcurrentHashMap<>();
+        for(User user : userRepository.findAll()) {
+            result.put(user.getUserName(), user);
+        }
+
+        return result;
     }
 }

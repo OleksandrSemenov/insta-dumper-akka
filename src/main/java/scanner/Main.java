@@ -1,16 +1,11 @@
 package scanner;
 
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.transaction.annotation.Transactional;
-import scanner.entities.FakeUser;
 import scanner.entities.SearchState;
 import scanner.repository.SearchStateRepository;
-
-import javax.persistence.EntityManager;
 
 @SpringBootApplication
 public class Main implements CommandLineRunner {
@@ -28,6 +23,6 @@ public class Main implements CommandLineRunner {
     public void run(String... args) {
         //System.out.println(searchStatesDao.getFirstAvailable().getUserName());
         scanner.scan();
-        //searchStatesDao.add(new SearchState("sasha_hudyma", null, false));
+        //searchStateRepository.save(new SearchState("sasha_hudyma", null, false));
     }
 }

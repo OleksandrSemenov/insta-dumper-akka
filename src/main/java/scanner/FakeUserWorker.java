@@ -22,7 +22,7 @@ public class FakeUserWorker implements Runnable {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private SearchStateManager manageSearchState;
+    private SearchStateManager searchStateManager;
     private final int SLEEP_ONE_SECOND = 1000;
     private List<InstagramUserSummary> users;
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
@@ -40,22 +40,32 @@ public class FakeUserWorker implements Runnable {
         } catch (IOException e) {
             logger.error("login failed", e);
             return;
+        } catch (Exception e) {
+            logger.error("login failed", e);
+            return;
         }
 
         while (true) {
             try {
                 do {
-                    users = manageSearchState.getUsers(instagram);
+                    users = searchStateManager.getUsers(instagram);
                 } while (users == null);
+                int count = 0;
                 for (InstagramUserSummary user : users) {
+                    if(searchStateManager.getFoundUsers().containsKey(user.getUsername())){
+                       continue;
+                    }
+                    count++;
                     InstagramSearchUsernameResult follower = getUser(user.getUsername());
                     InstagramUser instagramUser = follower.getUser();
+                    User saveUser = instagramUserToUserEntity(instagramUser);
+                    searchStateManager.getFoundUsers().put(user.getUsername(), saveUser);
                     addSearchState(instagramUser);
-                    addUser(instagramUser);
+                    userRepository.save(saveUser);
                     wait(SLEEP_ONE_SECOND);
                 }
 
-                logger.error("   ---Work done --- " + users.size());
+                logger.error("   ---Work done --- " + users.size() + " Added " + count);
             } catch (Exception e) {
                 logger.error("socket exception", e);
             }
@@ -73,24 +83,20 @@ public class FakeUserWorker implements Runnable {
         return resutUser;
     }
 
-    private void addUser(InstagramUser instagramUser) {
-        if (!userRepository.existsByUserName(instagramUser.username)) {
-            userRepository.save(new User(instagramUser.username,
-                    instagramUser.full_name,
-                    instagramUser.public_email,
-                    instagramUser.public_phone_number,
-                    instagramUser.profile_pic_url,
-                    instagramUser.biography,
-                    instagramUser.city_name,
-                    instagramUser.address_street,
-                    instagramUser.public_phone_country_code));
-        }
+    private User instagramUserToUserEntity(InstagramUser instagramUser) {
+        return new User(instagramUser.username,
+                instagramUser.full_name,
+                instagramUser.public_email,
+                instagramUser.public_phone_number,
+                instagramUser.profile_pic_url,
+                instagramUser.biography,
+                instagramUser.city_name,
+                instagramUser.address_street,
+                instagramUser.public_phone_country_code);
     }
 
     private void addSearchState(InstagramUser instagramUser) {
-        if (!searchStateRepository.existsByUserName(instagramUser.username)) {
-            searchStateRepository.save(new SearchState(instagramUser.username, null, false));
-        }
+        searchStateRepository.save(new SearchState(instagramUser.username, null, false));
     }
 
     private void wait(int milliseconds) {
