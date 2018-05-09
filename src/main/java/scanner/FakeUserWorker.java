@@ -15,7 +15,7 @@ import scanner.repository.UserRepository;
 import java.io.IOException;
 import java.util.List;
 
-public class FakeUserWorker extends Thread {
+public class FakeUserWorker implements Runnable {
     private Instagram4j instagram;
     @Autowired
     private SearchStateRepository searchStateRepository;
