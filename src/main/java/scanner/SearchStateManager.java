@@ -36,6 +36,12 @@ public class SearchStateManager {
     @PostConstruct
     private void init() {
         searchState = searchStateRepository.findFirstByIsScannedFalseOrderByIdAsc();
+
+        if(searchState == null) {
+            searchState = new SearchState("ukraine", null, false);
+            searchStateRepository.save(searchState);
+        }
+
         foundUsers = initFoundUsers();
     }
 

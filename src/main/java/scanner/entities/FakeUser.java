@@ -1,6 +1,7 @@
 package scanner.entities;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 
 @Entity
@@ -9,8 +10,10 @@ public class FakeUser implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @NotEmpty
     @Column(name = "userName", nullable = false)
     private String userName;
+    @NotEmpty
     @Column(name = "password", nullable = false)
     private String password;
 
