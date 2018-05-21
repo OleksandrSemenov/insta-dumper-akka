@@ -21,7 +21,7 @@ public class Main implements CommandLineRunner {
     @Override
     public void run(String... args) {
         //System.out.println(searchStatesDao.getFirstAvailable().getUserName());
-        scanner.scan();
+        //scanner.scan();
         //searchStateRepository.save(new SearchState("sasha_hudyma", null, false));
     }
 }

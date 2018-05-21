@@ -15,7 +15,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/fakeUser/")
+@RequestMapping("/api/fakeUsers")
 public class FakeUserRestController {
     @Autowired
     private FakeUserRepository fakeUserRepository;
