@@ -39,7 +39,7 @@ public class UserRestController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/phone/{code}/{phone}")
+    @RequestMapping(value = "/phone/{code}/{phone}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<User> getByPhone(@PathVariable("code") String code, @PathVariable("phone") String phone) {
         User user = userRepository.findByPhoneCountryCodeAndPhoneNumber(code, phone);
 
