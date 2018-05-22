@@ -9,28 +9,76 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "userName")
+    @Column(name = "user_name")
     private String userName;
-    @Column(name = "fullName")
+    @Column(name = "full_name")
     private String fullName;
-    @Column(name = "email")
+    @Column
     private String email;
-    @Column(name = "phoneNumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
-    @Column(name = "avatarUrl")
+    @Column(name = "avatar_url")
     private String avatarUrl;
-    @Column(name = "biography", length = 999)
+    @Column(length = 999)
     private String biography;
-    @Column(name = "location")
+    @Column
     private String location;
-    @Column(name = "street", length = 999)
+    @Column(length = 999)
     private String street;
-    @Column(name = "phoneCountryCode")
+    @Column(name = "phone_country_code")
     private String phoneCountryCode;
+    @Column(name = "businnes_contact_method")
+    private String businessContactMethod;
+    @Column(name = "direct_messaging")
+    private String directMessaging;
+    @Column(name = "external_lynx_url")
+    private String externalLynxUrl;
+    @Column(name = "external_url")
+    private String externalUrl;
+    @Column(name = "follower_count")
+    private int followerCount;
+    @Column(name = "following_count")
+    private int followingCount;
+    @Column(name = "geo_media_count")
+    private int geoMediaCount;
+    @Column(name = "has_anonymous_profile_picture")
+    private boolean hasAnonymousProfilePicture;
+    @Column(name = "has_biography_translation")
+    private boolean hasBiographyTranslation;
+    @Column(name = "has_chaining")
+    private boolean hasChaining;
+    @Column(name = "hd_profile_pic_url")
+    private String hdProfilePicUrl;
+    @Column(name = "hd_profile_pic_versions" ,length = 1000)
+    private String hdProfilePicVersions;
+    @Column(name = "is_business")
+    private boolean isBusiness;
+    @Column(name = "is_private")
+    private boolean isPrivate;
+    @Column(name = "is_verified")
+    private boolean isVerified;
+    @Column
+    private float latitude;
+    @Column
+    private float longitude;
+    @Column(name = "media_count")
+    private int mediaCount;
+    @Column
+    private long pk;
+    @Column(name = "profile_pic_id")
+    private String profilePicId;
+    @Column(name = "user_tags_count")
+    private int userTagsCount;
+    @Column
+    private String zip;
 
     public User() {}
 
-    public User(String userName, String fullName, String email, String phoneNumber, String avatarUrl, String biography, String location, String street, String phoneCountryCode) {
+    public User(String userName, String fullName, String email, String phoneNumber, String avatarUrl, String biography, String location, String street,
+                String phoneCountryCode, String businessContactMethod, String directMessaging, String externalLynxUrl, String externalUrl, int followerCount,
+                int followingCount, int geoMediaCount, boolean hasAnonymousProfilePicture, boolean hasBiographyTranslation, boolean hasChaining,
+                String hdProfilePicUrlInfo, String hdProfilePicVersions, boolean isBusiness, boolean isPrivate, boolean isVerified, float latitude, float longitude,
+                int mediaCount, long pk, String profilePicId, int userTagsCount, String zip) {
         this.userName = userName;
         this.fullName = fullName;
         this.email = email;
@@ -40,6 +88,28 @@ public class User implements Serializable {
         this.location = location;
         this.street = street;
         this.phoneCountryCode = phoneCountryCode;
+        this.businessContactMethod = businessContactMethod;
+        this.directMessaging = directMessaging;
+        this.externalLynxUrl = externalLynxUrl;
+        this.externalUrl = externalUrl;
+        this.followerCount = followerCount;
+        this.followingCount = followingCount;
+        this.geoMediaCount = geoMediaCount;
+        this.hasAnonymousProfilePicture = hasAnonymousProfilePicture;
+        this.hasBiographyTranslation = hasBiographyTranslation;
+        this.hasChaining = hasChaining;
+        this.hdProfilePicUrl = hdProfilePicUrlInfo;
+        this.hdProfilePicVersions = hdProfilePicVersions;
+        this.isBusiness = isBusiness;
+        this.isPrivate = isPrivate;
+        this.isVerified = isVerified;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.mediaCount = mediaCount;
+        this.pk = pk;
+        this.profilePicId = profilePicId;
+        this.userTagsCount = userTagsCount;
+        this.zip = zip;
     }
 
     public Integer getId() {
@@ -120,5 +190,181 @@ public class User implements Serializable {
 
     public void setPhoneCountryCode(String phoneCountryCode) {
         this.phoneCountryCode = phoneCountryCode;
+    }
+
+    public String getBusinessContactMethod() {
+        return businessContactMethod;
+    }
+
+    public void setBusinessContactMethod(String businessContactMethod) {
+        this.businessContactMethod = businessContactMethod;
+    }
+
+    public String getDirectMessaging() {
+        return directMessaging;
+    }
+
+    public void setDirectMessaging(String directMessaging) {
+        this.directMessaging = directMessaging;
+    }
+
+    public String getExternalLynxUrl() {
+        return externalLynxUrl;
+    }
+
+    public void setExternalLynxUrl(String externalLynxUrl) {
+        this.externalLynxUrl = externalLynxUrl;
+    }
+
+    public String getExternalUrl() {
+        return externalUrl;
+    }
+
+    public void setExternalUrl(String externalUrl) {
+        this.externalUrl = externalUrl;
+    }
+
+    public int getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
+    }
+
+    public void setFollowingCount(int followingCount) {
+        this.followingCount = followingCount;
+    }
+
+    public int getGeoMediaCount() {
+        return geoMediaCount;
+    }
+
+    public void setGeoMediaCount(int geoMediaCount) {
+        this.geoMediaCount = geoMediaCount;
+    }
+
+    public boolean isHasAnonymousProfilePicture() {
+        return hasAnonymousProfilePicture;
+    }
+
+    public void setHasAnonymousProfilePicture(boolean hasAnonymousProfilePicture) {
+        this.hasAnonymousProfilePicture = hasAnonymousProfilePicture;
+    }
+
+    public boolean isHasBiographyTranslation() {
+        return hasBiographyTranslation;
+    }
+
+    public void setHasBiographyTranslation(boolean hasBiographyTranslation) {
+        this.hasBiographyTranslation = hasBiographyTranslation;
+    }
+
+    public boolean isHasChaining() {
+        return hasChaining;
+    }
+
+    public void setHasChaining(boolean hasChaining) {
+        this.hasChaining = hasChaining;
+    }
+
+    public String getHdProfilePicUrl() {
+        return hdProfilePicUrl;
+    }
+
+    public void setHdProfilePicUrl(String hdProfilePicUrl) {
+        this.hdProfilePicUrl = hdProfilePicUrl;
+    }
+
+    public String getHdProfilePicVersions() {
+        return hdProfilePicVersions;
+    }
+
+    public void setHdProfilePicVersions(String hdProfilePicVersions) {
+        this.hdProfilePicVersions = hdProfilePicVersions;
+    }
+
+    public boolean isBusiness() {
+        return isBusiness;
+    }
+
+    public void setBusiness(boolean business) {
+        isBusiness = business;
+    }
+
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    public void setPrivate(boolean aPrivate) {
+        isPrivate = aPrivate;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
+    public float getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
+
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
+
+    public int getMediaCount() {
+        return mediaCount;
+    }
+
+    public void setMediaCount(int mediaCount) {
+        this.mediaCount = mediaCount;
+    }
+
+    public long getPk() {
+        return pk;
+    }
+
+    public void setPk(long pk) {
+        this.pk = pk;
+    }
+
+    public String getProfilePicId() {
+        return profilePicId;
+    }
+
+    public void setProfilePicId(String profilePicId) {
+        this.profilePicId = profilePicId;
+    }
+
+    public int getUserTagsCount() {
+        return userTagsCount;
+    }
+
+    public void setUserTagsCount(int userTagsCount) {
+        this.userTagsCount = userTagsCount;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(String zip) {
+        this.zip = zip;
     }
 }
