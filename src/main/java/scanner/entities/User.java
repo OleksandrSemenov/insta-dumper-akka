@@ -9,15 +9,15 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "user_name")
+    @Column
     private String userName;
-    @Column(name = "full_name")
+    @Column
     private String fullName;
     @Column
     private String email;
-    @Column(name = "phone_number")
+    @Column
     private String phoneNumber;
-    @Column(name = "avatar_url")
+    @Column
     private String avatarUrl;
     @Column(length = 999)
     private String biography;
@@ -25,49 +25,49 @@ public class User implements Serializable {
     private String location;
     @Column(length = 999)
     private String street;
-    @Column(name = "phone_country_code")
+    @Column
     private String phoneCountryCode;
-    @Column(name = "businnes_contact_method")
+    @Column
     private String businessContactMethod;
-    @Column(name = "direct_messaging")
+    @Column
     private String directMessaging;
-    @Column(name = "external_lynx_url")
+    @Column
     private String externalLynxUrl;
-    @Column(name = "external_url")
+    @Column
     private String externalUrl;
-    @Column(name = "follower_count")
+    @Column
     private int followerCount;
-    @Column(name = "following_count")
+    @Column
     private int followingCount;
-    @Column(name = "geo_media_count")
+    @Column
     private int geoMediaCount;
-    @Column(name = "has_anonymous_profile_picture")
+    @Column
     private boolean hasAnonymousProfilePicture;
-    @Column(name = "has_biography_translation")
+    @Column
     private boolean hasBiographyTranslation;
-    @Column(name = "has_chaining")
+    @Column
     private boolean hasChaining;
-    @Column(name = "hd_profile_pic_url")
+    @Column
     private String hdProfilePicUrl;
-    @Column(name = "hd_profile_pic_versions" ,length = 1000)
+    @Column(length = 1000)
     private String hdProfilePicVersions;
-    @Column(name = "is_business")
+    @Column
     private boolean isBusiness;
-    @Column(name = "is_private")
+    @Column
     private boolean isPrivate;
-    @Column(name = "is_verified")
+    @Column
     private boolean isVerified;
     @Column
     private float latitude;
     @Column
     private float longitude;
-    @Column(name = "media_count")
+    @Column
     private int mediaCount;
     @Column
     private long pk;
-    @Column(name = "profile_pic_id")
+    @Column
     private String profilePicId;
-    @Column(name = "user_tags_count")
+    @Column
     private int userTagsCount;
     @Column
     private String zip;
