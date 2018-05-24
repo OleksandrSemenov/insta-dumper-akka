@@ -62,6 +62,7 @@ public class FakeUserWorker implements Runnable {
                     searchStateManager.getFoundUsers().put(user.getUsername(), saveUser);
                     addSearchState(instagramUser);
                     userRepository.save(saveUser);
+                    System.out.println(count);
                     wait(SLEEP_ONE_SECOND);
                 }
 

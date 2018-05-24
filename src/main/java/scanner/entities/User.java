@@ -1,9 +1,16 @@
 package scanner.entities;
 
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
+@Indexed
 @Table(name = "Users")
 public class User implements Serializable {
     @Id
@@ -11,7 +18,7 @@ public class User implements Serializable {
     private Integer id;
     @Column
     private String userName;
-    @Column
+    @Field(index = Index.YES, analyze= Analyze.YES, store= Store.NO)
     private String fullName;
     @Column
     private String email;
