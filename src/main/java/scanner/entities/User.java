@@ -1,16 +1,11 @@
 package scanner.entities;
 
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
+import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Indexed
 @Table(name = "Users")
 public class User implements Serializable {
     @Id
@@ -18,7 +13,7 @@ public class User implements Serializable {
     private Integer id;
     @Column
     private String userName;
-    @Field(index = Index.YES, analyze= Analyze.YES, store= Store.NO)
+    @Column
     private String fullName;
     @Column
     private String email;
@@ -117,6 +112,33 @@ public class User implements Serializable {
         this.profilePicId = profilePicId;
         this.userTagsCount = userTagsCount;
         this.zip = zip;
+    }
+
+    public static User instagramUserToUserEntity(InstagramUser instagramUser) {
+        String hdAvatarUrl = null;
+        String avatarVersions = null;
+
+        if (instagramUser.hd_profile_pic_url_info != null) {
+            hdAvatarUrl = instagramUser.hd_profile_pic_url_info.url;
+        }
+
+        if (instagramUser.hd_profile_pic_versions != null && !instagramUser.hd_profile_pic_versions.isEmpty()) {
+            for (int i = 0; i < instagramUser.hd_profile_pic_versions.size(); i++) {
+                avatarVersions += instagramUser.hd_profile_pic_versions.get(i).url;
+
+                if (i != instagramUser.hd_profile_pic_versions.size()) {
+                    avatarVersions += ", ";
+                }
+            }
+        }
+
+        return new User(instagramUser.username, instagramUser.full_name, instagramUser.public_email, instagramUser.public_phone_number, instagramUser.profile_pic_url,
+                instagramUser.biography, instagramUser.city_name, instagramUser.address_street, instagramUser.public_phone_country_code, instagramUser.business_contact_method,
+                instagramUser.direct_messaging, instagramUser.external_lynx_url, instagramUser.external_url, instagramUser.follower_count, instagramUser.following_count,
+                instagramUser.geo_media_count, instagramUser.has_anonymous_profile_picture, instagramUser.has_biography_translation, instagramUser.has_chaining,
+                hdAvatarUrl, avatarVersions, instagramUser.is_business, instagramUser.is_private,
+                instagramUser.is_verified, instagramUser.latitude, instagramUser.longitude, instagramUser.media_count, instagramUser.pk, instagramUser.profile_pic_id,
+                instagramUser.usertags_count, instagramUser.zip);
     }
 
     public Integer getId() {
