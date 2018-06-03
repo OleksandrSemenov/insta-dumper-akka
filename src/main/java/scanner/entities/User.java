@@ -73,14 +73,21 @@ public class User implements Serializable {
     private int userTagsCount;
     @Column
     private String zip;
+    @Column
+    private boolean isScanned;
 
     public User() {}
+
+    public User(String userName, boolean isScanned) {
+        this.userName = userName;
+        this.isScanned = isScanned;
+    }
 
     public User(String userName, String fullName, String email, String phoneNumber, String avatarUrl, String biography, String location, String street,
                 String phoneCountryCode, String businessContactMethod, String directMessaging, String externalLynxUrl, String externalUrl, int followerCount,
                 int followingCount, int geoMediaCount, boolean hasAnonymousProfilePicture, boolean hasBiographyTranslation, boolean hasChaining,
                 String hdProfilePicUrlInfo, String hdProfilePicVersions, boolean isBusiness, boolean isPrivate, boolean isVerified, float latitude, float longitude,
-                int mediaCount, long pk, String profilePicId, int userTagsCount, String zip) {
+                int mediaCount, long pk, String profilePicId, int userTagsCount, String zip, boolean isScanned) {
         this.userName = userName;
         this.fullName = fullName;
         this.email = email;
@@ -112,6 +119,7 @@ public class User implements Serializable {
         this.profilePicId = profilePicId;
         this.userTagsCount = userTagsCount;
         this.zip = zip;
+        this.isScanned = isScanned;
     }
 
     public static User instagramUserToUserEntity(InstagramUser instagramUser) {
@@ -138,7 +146,7 @@ public class User implements Serializable {
                 instagramUser.geo_media_count, instagramUser.has_anonymous_profile_picture, instagramUser.has_biography_translation, instagramUser.has_chaining,
                 hdAvatarUrl, avatarVersions, instagramUser.is_business, instagramUser.is_private,
                 instagramUser.is_verified, instagramUser.latitude, instagramUser.longitude, instagramUser.media_count, instagramUser.pk, instagramUser.profile_pic_id,
-                instagramUser.usertags_count, instagramUser.zip);
+                instagramUser.usertags_count, instagramUser.zip, true);
     }
 
     public Integer getId() {
@@ -395,5 +403,13 @@ public class User implements Serializable {
 
     public void setZip(String zip) {
         this.zip = zip;
+    }
+
+    public boolean isScanned() {
+        return isScanned;
+    }
+
+    public void setScanned(boolean scanned) {
+        isScanned = scanned;
     }
 }
