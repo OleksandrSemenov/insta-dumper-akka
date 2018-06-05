@@ -11,6 +11,7 @@ import scanner.FakeUserWorker;
 import scanner.Scanner;
 import scanner.entities.User;
 
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +29,7 @@ public class Config {
     @Bean
     @Scope(value = "prototype")
     @Lazy(value = true)
-    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, ConcurrentHashMap<String, User> foundUsers) {
+    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, Set<String> foundUsers) {
         return new FakeUserWorker(instagram4j, searchUsers, foundUsers);
     }
 

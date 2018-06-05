@@ -15,6 +15,7 @@ import scanner.repository.UserRepository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,11 +25,11 @@ public class FakeUserWorker implements Runnable {
     private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
     private BlockingQueue<User> searchUsers;
-    private ConcurrentHashMap<String, User> foundUsers;
+    private Set<String> foundUsers;
 
     public FakeUserWorker() {}
 
-    public FakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, ConcurrentHashMap<String, User> foundUsers) {
+    public FakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, Set<String> foundUsers) {
         this.instagram = instagram4j;
         this.searchUsers = searchUsers;
         this.foundUsers = foundUsers;
@@ -68,13 +69,13 @@ public class FakeUserWorker implements Runnable {
                     continue;
                 }
 
-                foundUsers.put(user.getUserName(), user);
+                foundUsers.add(user.getUserName());
 
                 List<User> users = new ArrayList<>();
 
                 for(InstagramUserSummary instagramUserSummary : getFollowers(user.getPk())) {
-                    if(!foundUsers.containsKey(instagramUserSummary.getUsername())) {
-                        foundUsers.put(instagramUserSummary.getUsername(), new User(instagramUserSummary.getUsername(), false));
+                    if(!foundUsers.contains(instagramUserSummary.getUsername())) {
+                        foundUsers.add(instagramUserSummary.getUsername());
                         users.add(new User(instagramUserSummary.getUsername() ,false));
                     }
                 }

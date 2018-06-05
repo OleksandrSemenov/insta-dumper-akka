@@ -10,6 +10,7 @@ import scanner.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 
 public class Scanner {
@@ -22,7 +23,7 @@ public class Scanner {
     private List<FakeUser> fakeUsers;
     private BlockingQueue<User> searchUsers = new LinkedBlockingDeque<>();
     private final String INSTAGRAM_USER_UKRAINE = "ukraine";
-    private ConcurrentHashMap<String, User> foundUsers;
+    private Set<String> foundUsers = ConcurrentHashMap.newKeySet();
 
     public Scanner() {
         fakeUsers = new ArrayList<>();
@@ -51,10 +52,10 @@ public class Scanner {
         }
     }
 
-    private ConcurrentHashMap<String, User> initFoundUsers() {
-        ConcurrentHashMap<String, User> result = new ConcurrentHashMap<>();
+    private Set<String> initFoundUsers() {
+        Set<String> result = ConcurrentHashMap.newKeySet();
         for(User user : userRepository.findAll()) {
-            result.put(user.getUserName(), user);
+            result.add(user.getUserName());
         }
 
         return result;
