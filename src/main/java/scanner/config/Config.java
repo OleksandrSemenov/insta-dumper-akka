@@ -8,8 +8,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.FakeUserWorker;
-import scanner.SearchStateManager;
 import scanner.Scanner;
+import scanner.entities.User;
+
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableTransactionManagement
@@ -25,13 +29,8 @@ public class Config {
     @Bean
     @Scope(value = "prototype")
     @Lazy(value = true)
-    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j) {
-        return new FakeUserWorker(instagram4j);
-    }
-
-    @Bean
-    public SearchStateManager getManageSearchState(){
-        return new SearchStateManager();
+    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, Set<String> foundUsers) {
+        return new FakeUserWorker(instagram4j, searchUsers, foundUsers);
     }
 
     @Bean

@@ -12,6 +12,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByUserName(String userName);
     User findByEmail(String email);
     User findByPhoneCountryCodeAndPhoneNumber(String code, String phone);
+    List<User> findByIsScannedFalse();
     @Query("select u from User u where fts('simple', u.fullName, :name) = true")
     List<User> findbyFullName(@Param("name")String name);
 }
