@@ -58,11 +58,10 @@ public class FakeUserWorker implements Runnable {
                     count++;
                     InstagramSearchUsernameResult follower = getUser(user.getUsername());
                     InstagramUser instagramUser = follower.getUser();
-                    User saveUser = User.instagramUserToUserEntity(instagramUser);
+                    User saveUser = instagramUserToUserEntity(instagramUser);
                     searchStateManager.getFoundUsers().put(user.getUsername(), saveUser);
                     addSearchState(instagramUser);
                     userRepository.save(saveUser);
-                    System.out.println(count);
                     wait(SLEEP_ONE_SECOND);
                 }
 
@@ -82,6 +81,33 @@ public class FakeUserWorker implements Runnable {
         }
 
         return resutUser;
+    }
+
+    private User instagramUserToUserEntity(InstagramUser instagramUser) {
+        String hdAvatarUrl = null;
+        String avatarVersions = null;
+
+        if(instagramUser.hd_profile_pic_url_info != null) {
+            hdAvatarUrl = instagramUser.hd_profile_pic_url_info.url;
+        }
+
+        if(instagramUser.hd_profile_pic_versions != null && !instagramUser.hd_profile_pic_versions.isEmpty()) {
+            for(int i = 0; i < instagramUser.hd_profile_pic_versions.size(); i++) {
+                avatarVersions += instagramUser.hd_profile_pic_versions.get(i).url;
+
+                if(i != instagramUser.hd_profile_pic_versions.size()) {
+                    avatarVersions += ", ";
+                }
+            }
+        }
+
+        return new User(instagramUser.username, instagramUser.full_name, instagramUser.public_email, instagramUser.public_phone_number, instagramUser.profile_pic_url,
+                instagramUser.biography, instagramUser.city_name, instagramUser.address_street, instagramUser.public_phone_country_code, instagramUser.business_contact_method,
+                instagramUser.direct_messaging, instagramUser.external_lynx_url, instagramUser.external_url, instagramUser.follower_count , instagramUser.following_count,
+                instagramUser.geo_media_count, instagramUser.has_anonymous_profile_picture, instagramUser.has_biography_translation, instagramUser.has_chaining,
+                hdAvatarUrl, avatarVersions, instagramUser.is_business, instagramUser.is_private,
+                instagramUser.is_verified, instagramUser.latitude, instagramUser.longitude, instagramUser.media_count, instagramUser.pk, instagramUser.profile_pic_id,
+                instagramUser.usertags_count, instagramUser.zip);
     }
 
     private void addSearchState(InstagramUser instagramUser) {
