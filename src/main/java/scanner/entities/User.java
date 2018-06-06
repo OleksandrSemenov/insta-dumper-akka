@@ -4,6 +4,7 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 @Table(name = "Users")
@@ -75,6 +76,8 @@ public class User implements Serializable {
     private String zip;
     @Column
     private boolean isScanned;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<Follower> followers;
 
     public User() {}
 
@@ -411,5 +414,13 @@ public class User implements Serializable {
 
     public void setScanned(boolean scanned) {
         isScanned = scanned;
+    }
+
+    public Set<Follower> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<Follower> followers) {
+        this.followers = followers;
     }
 }

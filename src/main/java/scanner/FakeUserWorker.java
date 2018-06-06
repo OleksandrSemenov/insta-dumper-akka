@@ -10,10 +10,13 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.hibernate.exception.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
+import scanner.entities.Follower;
 import scanner.entities.User;
+import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -26,6 +29,8 @@ public class FakeUserWorker implements Runnable {
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
     private BlockingQueue<User> searchUsers;
     private Set<String> foundUsers;
+    @Autowired
+    private FollowerRepository followerRepository;
 
     public FakeUserWorker() {}
 
@@ -72,16 +77,21 @@ public class FakeUserWorker implements Runnable {
                 foundUsers.add(user.getUserName());
 
                 List<User> users = new ArrayList<>();
+                Set<Follower> followers = new HashSet<>();
+                String intagramProfileUrl = "https://www.instagram.com/";
 
                 for(InstagramUserSummary instagramUserSummary : getFollowers(user.getPk())) {
                     if(!foundUsers.contains(instagramUserSummary.getUsername())) {
                         foundUsers.add(instagramUserSummary.getUsername());
                         users.add(new User(instagramUserSummary.getUsername() ,false));
                     }
+
+                    followers.add(new Follower(user, intagramProfileUrl + instagramUserSummary.getUsername()));
                 }
 
                 userRepository.saveAll(users);
                 searchUsers.addAll(users);
+                followerRepository.saveAll(followers);
             } catch (Exception e) {
                 logger.error("socket exception", e);
             }
@@ -107,25 +117,44 @@ public class FakeUserWorker implements Runnable {
     private List<InstagramUserSummary> getFollowers(long id) {
         List<InstagramUserSummary> followers = new ArrayList<>();
         String nextMaxId = null;
+        boolean isConnectionReset = false;
+        final int SLEEP_ONE_SECOND = 1000;
 
-        try {
-            while (true) {
-                InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
-                if(followersResult == null || followersResult.getUsers() == null) {
-                    break;
+        do {
+            try {
+                while (true) {
+                    InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
+                    if (followersResult == null || followersResult.getUsers() == null) {
+                        break;
+                    }
+
+                    followers.addAll(followersResult.getUsers());
+                    nextMaxId = followersResult.getNext_max_id();
+
+                    if (nextMaxId == null) {
+                        isConnectionReset = false;
+                        break;
+                    }
+
+                    sleep(SLEEP_ONE_SECOND);
                 }
-
-                followers.addAll(followersResult.getUsers());
-                nextMaxId = followersResult.getNext_max_id();
-
-                if(nextMaxId == null) {
-                    break;
-                }
+            } catch (IOException e) {
+                logger.error("followers ;( + " + id, e);
+                isConnectionReset = true;
+                nextMaxId = null;
+                followers.clear();
             }
-        } catch (IOException e) {
-            logger.error("", e);
         }
+        while (isConnectionReset);
 
         return followers;
+    }
+
+    private void sleep(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
