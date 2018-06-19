@@ -31,6 +31,7 @@ public class FakeUserWorker implements Runnable {
     private Set<String> foundUsers;
     @Autowired
     private FollowerRepository followerRepository;
+    private boolean stop = false;
 
     public FakeUserWorker() {}
 
@@ -52,8 +53,12 @@ public class FakeUserWorker implements Runnable {
             return;
         }
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
+                if(stop) {
+                    Thread.currentThread().interrupt();
+                }
+
                 User user = searchUsers.take();
                 InstagramUser instagramUser = getUser(user.getUserName());
 
@@ -92,10 +97,16 @@ public class FakeUserWorker implements Runnable {
                 userRepository.saveAll(users);
                 searchUsers.addAll(users);
                 followerRepository.saveAll(followers);
+                logger.error("WORKER NAME = " + instagram.getUsername());
             } catch (Exception e) {
                 logger.error("socket exception", e);
             }
         }
+    }
+
+    public void stop() {
+        stop = true;
+        //Thread.currentThread().interrupt();
     }
 
     private InstagramUser getUser(String userName) {

@@ -1,5 +1,6 @@
 package scanner.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 
 import javax.persistence.*;
@@ -22,11 +23,11 @@ public class User implements Serializable {
     private String phoneNumber;
     @Column
     private String avatarUrl;
-    @Column(length = 999)
+    @Lob
     private String biography;
     @Column
     private String location;
-    @Column(length = 999)
+    @Lob
     private String street;
     @Column
     private String phoneCountryCode;
@@ -34,9 +35,9 @@ public class User implements Serializable {
     private String businessContactMethod;
     @Column
     private String directMessaging;
-    @Column
+    @Lob
     private String externalLynxUrl;
-    @Column
+    @Lob
     private String externalUrl;
     @Column
     private int followerCount;
@@ -52,7 +53,7 @@ public class User implements Serializable {
     private boolean hasChaining;
     @Column
     private String hdProfilePicUrl;
-    @Column(length = 1000)
+    @Lob
     private String hdProfilePicVersions;
     @Column
     private boolean isBusiness;
@@ -77,6 +78,7 @@ public class User implements Serializable {
     @Column
     private boolean isScanned;
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Follower> followers;
 
     public User() {}

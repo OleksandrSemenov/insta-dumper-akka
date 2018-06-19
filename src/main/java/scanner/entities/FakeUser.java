@@ -21,8 +21,7 @@ public class FakeUser implements Serializable {
 
     }
 
-    public FakeUser(Integer id, String userName, String password) {
-        this.id = id;
+    public FakeUser(String userName, String password) {
         this.userName = userName;
         this.password = password;
     }

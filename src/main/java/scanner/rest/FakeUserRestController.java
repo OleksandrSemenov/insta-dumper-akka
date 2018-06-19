@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import scanner.Scanner;
 import scanner.entities.FakeUser;
 import scanner.entities.User;
 import scanner.repository.FakeUserRepository;
@@ -23,6 +24,9 @@ import java.util.Optional;
 public class FakeUserRestController {
     @Autowired
     private FakeUserRepository fakeUserRepository;
+    @Autowired
+    private Scanner scanner;
+    private final Logger logger = Logger.getLogger(FakeUserRestController.class);
 
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
@@ -43,7 +47,14 @@ public class FakeUserRestController {
             throw new BadRequestException();
         }
 
-        return fakeUserRepository.save(fakeUser);
+        try {
+            fakeUserRepository.save(fakeUser);
+            scanner.submitNewFakeUserWorker(fakeUser);
+        } catch (Exception e) {
+            logger.error("Exception in save fakeuser", e);
+        }
+
+        return fakeUser;
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -76,5 +87,17 @@ public class FakeUserRestController {
         }
 
         return optional.get();
+    }
+
+    @RequestMapping(value = "/stop", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public void stop() {
+        scanner.stopWorkers();
+    }
+
+    @RequestMapping(value = "/start", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public void start() {
+        scanner.startWorkers();
     }
 }
