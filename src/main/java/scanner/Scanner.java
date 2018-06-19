@@ -60,6 +60,7 @@ public class Scanner {
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
         Instagram4j instagram4j = beanFactory.getBean(Instagram4j.class, fakeUser.getUserName(), fakeUser.getPassword());
         FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j, searchUsers, foundUsers);
+        workers.add(fakeUserWorker);
         executorService.submit(fakeUserWorker);
     }
 
