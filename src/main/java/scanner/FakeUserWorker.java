@@ -48,15 +48,7 @@ public class FakeUserWorker implements Runnable {
 
     @Override
     public void run() {
-        try {
-            login();
-        } catch (IOException e) {
-            logger.error("login failed " + instagram.getUsername(), e);
-            return;
-        } catch (Exception e) {
-            logger.error("login failed " + instagram.getUsername(), e);
-            return;
-        }
+        if (!doLogin()) return;
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
@@ -113,6 +105,16 @@ public class FakeUserWorker implements Runnable {
                 logger.error("socket exception", e);
             }
         }
+    }
+
+    private boolean doLogin() {
+        try {
+            login();
+        } catch (Exception e) {
+            logger.error("login failed " + instagram.getUsername(), e);
+            return false;
+        }
+        return true;
     }
 
     private List<UserDTO> getNewSearchUsers(List<User> users) {
