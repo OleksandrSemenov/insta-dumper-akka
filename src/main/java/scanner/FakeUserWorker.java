@@ -36,6 +36,7 @@ public class FakeUserWorker implements Runnable {
     private FollowerRepository followerRepository;
     private boolean stop = false;
     private final String intagramProfileUrl = "https://www.instagram.com/";
+    private UserDTO searchUser;
 
     public FakeUserWorker() {}
 
@@ -59,7 +60,7 @@ public class FakeUserWorker implements Runnable {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                UserDTO searchUser = searchUsers.take();
+                searchUser = searchUsers.take();
                 InstagramUser instagramUser = getUser(searchUser.getUserName());
 
                 if(instagramUser == null) {
@@ -105,6 +106,8 @@ public class FakeUserWorker implements Runnable {
                 logger.error("WORKER NAME = " + instagram.getUsername());
             } catch (InterruptedException e) {
                 logger.error("close worker", e);
+                searchUsers.add(searchUser);
+                Thread.currentThread().interrupt();
             }
             catch (Exception e) {
                 logger.error("socket exception", e);
@@ -145,6 +148,10 @@ public class FakeUserWorker implements Runnable {
                     if (followersResult == null || followersResult.getUsers() == null) {
                         logger.info("for this id = " + id + " 0 followers");
                         break;
+                    }
+
+                    for(int i = 0; i < 1000000;i++) {
+                        System.out.println(i + " i ");
                     }
 
                     followers.addAll(followersResult.getUsers());
