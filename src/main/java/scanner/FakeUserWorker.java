@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.stream.Collectors;
 
 public class FakeUserWorker implements Runnable {
     private Instagram4j instagram;
@@ -112,13 +113,8 @@ public class FakeUserWorker implements Runnable {
     }
 
     private List<UserDTO> getNewSearchUsers(List<User> users) {
-        List<UserDTO> updateUsers = new ArrayList<>();
-
-        for(User user : users) {
-            updateUsers.add(new UserDTO(user.getId(), user.getUserName()));
-        }
-
-        return updateUsers;
+        return users.stream().map(u -> new UserDTO(u.getId(), u.getUserName()))
+                .collect(Collectors.toList());
     }
 
     private InstagramUser getUser(String userName) {
@@ -147,6 +143,7 @@ public class FakeUserWorker implements Runnable {
                     InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
 
                     if (followersResult == null || followersResult.getUsers() == null) {
+                        logger.info("for this id = " + id + " 0 followers");
                         break;
                     }
 
