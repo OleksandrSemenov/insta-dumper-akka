@@ -8,34 +8,37 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersRe
 import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
+import org.bytedeco.javacv.FrameFilter;
 import org.hibernate.exception.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
+import scanner.dto.UserDTO;
 import scanner.entities.Follower;
 import scanner.entities.User;
 import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeUserWorker implements Runnable {
     private Instagram4j instagram;
     @Autowired
     private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
-    private BlockingQueue<User> searchUsers;
+    private BlockingQueue<UserDTO> searchUsers;
     private Set<String> foundUsers;
     @Autowired
     private FollowerRepository followerRepository;
     private boolean stop = false;
+    private final String intagramProfileUrl = "https://www.instagram.com/";
 
     public FakeUserWorker() {}
 
-    public FakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, Set<String> foundUsers) {
+    public FakeUserWorker(Instagram4j instagram4j, BlockingQueue<UserDTO> searchUsers, Set<String> foundUsers) {
         this.instagram = instagram4j;
         this.searchUsers = searchUsers;
         this.foundUsers = foundUsers;
@@ -55,27 +58,29 @@ public class FakeUserWorker implements Runnable {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                if(stop) {
-                    Thread.currentThread().interrupt();
-                }
-
-                User user = searchUsers.take();
-                InstagramUser instagramUser = getUser(user.getUserName());
+                UserDTO searchUser = searchUsers.take();
+                InstagramUser instagramUser = getUser(searchUser.getUserName());
 
                 if(instagramUser == null) {
                     continue;
                 }
 
-                int id = user.getId();
-                user = User.instagramUserToUserEntity(instagramUser);
+                List<InstagramUserSummary> instagramFollowers = getFollowers(instagramUser.getPk());
+
+                if(Thread.currentThread().isInterrupted()){
+                    searchUsers.add(searchUser);
+                    break;
+                }
+
+                User user = User.instagramUserToUserEntity(instagramUser);
+                user.setId(searchUser.getId());
                 user.setScanned(true);
-                user.setId(id);
 
                 try {
                     userRepository.save(user);
                 } catch (DataException e) {
                     logger.error("can't update", e);
-                    searchUsers.add(new User(user.getUserName(), false));
+                    searchUsers.add(new UserDTO(user.getId(), user.getUserName()));
                     continue;
                 }
 
@@ -83,9 +88,8 @@ public class FakeUserWorker implements Runnable {
 
                 List<User> users = new ArrayList<>();
                 Set<Follower> followers = new HashSet<>();
-                String intagramProfileUrl = "https://www.instagram.com/";
 
-                for(InstagramUserSummary instagramUserSummary : getFollowers(user.getPk())) {
+                for(InstagramUserSummary instagramUserSummary : instagramFollowers) {
                     if(!foundUsers.contains(instagramUserSummary.getUsername())) {
                         foundUsers.add(instagramUserSummary.getUsername());
                         users.add(new User(instagramUserSummary.getUsername() ,false));
@@ -95,18 +99,26 @@ public class FakeUserWorker implements Runnable {
                 }
 
                 userRepository.saveAll(users);
-                searchUsers.addAll(users);
+                searchUsers.addAll(getNewSearchUsers(users));
                 followerRepository.saveAll(followers);
                 logger.error("WORKER NAME = " + instagram.getUsername());
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                logger.error("close worker", e);
+            }
+            catch (Exception e) {
                 logger.error("socket exception", e);
             }
         }
     }
 
-    public void stop() {
-        stop = true;
-        //Thread.currentThread().interrupt();
+    private List<UserDTO> getNewSearchUsers(List<User> users) {
+        List<UserDTO> updateUsers = new ArrayList<>();
+
+        for(User user : users) {
+            updateUsers.add(new UserDTO(user.getId(), user.getUserName()));
+        }
+
+        return updateUsers;
     }
 
     private InstagramUser getUser(String userName) {
@@ -125,16 +137,15 @@ public class FakeUserWorker implements Runnable {
         instagram.login();
     }
 
-    private List<InstagramUserSummary> getFollowers(long id) {
+    private List<InstagramUserSummary> getFollowers(long id) throws InterruptedException {
         List<InstagramUserSummary> followers = new ArrayList<>();
         String nextMaxId = null;
-        boolean isConnectionReset = false;
         final int SLEEP_ONE_SECOND = 1000;
 
-        do {
-            try {
-                while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
                     InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
+
                     if (followersResult == null || followersResult.getUsers() == null) {
                         break;
                     }
@@ -143,29 +154,15 @@ public class FakeUserWorker implements Runnable {
                     nextMaxId = followersResult.getNext_max_id();
 
                     if (nextMaxId == null) {
-                        isConnectionReset = false;
                         break;
                     }
 
-                    sleep(SLEEP_ONE_SECOND);
+                    Thread.sleep(SLEEP_ONE_SECOND);
+                } catch (IOException e) {
+                    logger.error("get followers ", e);
                 }
-            } catch (IOException e) {
-                logger.error("followers ;( + " + id, e);
-                isConnectionReset = true;
-                nextMaxId = null;
-                followers.clear();
             }
-        }
-        while (isConnectionReset);
 
         return followers;
-    }
-
-    private void sleep(int time) {
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -1,6 +1,7 @@
 package scanner.config;
 
 import org.brunocvcunha.instagram4j.Instagram4j;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -9,11 +10,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.FakeUserWorker;
 import scanner.Scanner;
-import scanner.entities.User;
+import scanner.dto.UserDTO;
 
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableTransactionManagement
@@ -29,7 +29,7 @@ public class Config {
     @Bean
     @Scope(value = "prototype")
     @Lazy(value = true)
-    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<User> searchUsers, Set<String> foundUsers) {
+    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<UserDTO> searchUsers, Set<String> foundUsers) {
         return new FakeUserWorker(instagram4j, searchUsers, foundUsers);
     }
 
