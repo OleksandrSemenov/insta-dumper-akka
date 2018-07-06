@@ -17,6 +17,8 @@ public class Follower implements Serializable{
     @Column(nullable = false)
     private String url;
 
+    public Follower() {}
+
     public Follower(User user, String url) {
         this.user = user;
         this.url = url;
