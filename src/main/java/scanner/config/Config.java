@@ -12,6 +12,7 @@ import scanner.FakeUserWorker;
 import scanner.Scanner;
 import scanner.dto.UserDTO;
 
+import javax.sql.DataSource;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
@@ -37,4 +38,5 @@ public class Config {
     public Scanner getScanner() {
         return new Scanner();
     }
+
 }
