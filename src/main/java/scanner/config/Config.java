@@ -30,8 +30,8 @@ public class Config {
     @Bean
     @Scope(value = "prototype")
     @Lazy(value = true)
-    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j, BlockingQueue<UserDTO> searchUsers, Set<String> foundUsers) {
-        return new FakeUserWorker(instagram4j, searchUsers, foundUsers);
+    public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j) {
+        return new FakeUserWorker(instagram4j);
     }
 
     @Bean

@@ -23,9 +23,7 @@ public class Scanner {
     @Autowired
     private UserRepository userRepository;
     private List<FakeUser> fakeUsers;
-    private BlockingQueue<UserDTO> searchUsers = new LinkedBlockingDeque<>();
     private final String INSTAGRAM_USER_UKRAINE = "ukraine";
-    private Set<String> foundUsers = ConcurrentHashMap.newKeySet();
     private ExecutorService executorService = Executors.newCachedThreadPool();
     private List<FakeUserWorker> workers = new ArrayList<>();
     private List<Future<?>> futures = new ArrayList<>();
@@ -38,14 +36,13 @@ public class Scanner {
     public void init() {
         fakeUsers = getFakeUsers();
         fillSearchUsers();
-        foundUsers = userRepository.getFoundUsers();
         startWorkers();
     }
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
             Instagram4j instagram4j = beanFactory.getBean(Instagram4j.class, fakeUser.getUserName(), fakeUser.getPassword());
-            FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j, searchUsers, foundUsers);
+            FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j);
             workers.add(fakeUserWorker);
             futures.add(executorService.submit(fakeUserWorker));
         }
@@ -62,18 +59,14 @@ public class Scanner {
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
         Instagram4j instagram4j = beanFactory.getBean(Instagram4j.class, fakeUser.getUserName(), fakeUser.getPassword());
-        FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j, searchUsers, foundUsers);
+        FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j);
         workers.add(fakeUserWorker);
         executorService.submit(fakeUserWorker);
     }
 
     private void fillSearchUsers() {
-        searchUsers.addAll(userRepository.findByIsScannedFalse());
-
-        if(searchUsers.isEmpty()) {
+        if(userRepository.count() == 0) {
             User user = userRepository.save(new User(INSTAGRAM_USER_UKRAINE, false));
-            searchUsers.add(new UserDTO(user.getId(), user.getUserName()));
-            return;
         }
     }
 

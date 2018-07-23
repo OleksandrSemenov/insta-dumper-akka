@@ -30,20 +30,15 @@ public class FakeUserWorker implements Runnable {
     @Autowired
     private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(FakeUserWorker.class);
-    private BlockingQueue<UserDTO> searchUsers;
-    private Set<String> foundUsers;
     @Autowired
     private FollowerRepository followerRepository;
-    private boolean stop = false;
     private final String intagramProfileUrl = "https://www.instagram.com/";
-    private UserDTO searchUser;
+    private User searchUser;
 
     public FakeUserWorker() {}
 
-    public FakeUserWorker(Instagram4j instagram4j, BlockingQueue<UserDTO> searchUsers, Set<String> foundUsers) {
+    public FakeUserWorker(Instagram4j instagram4j) {
         this.instagram = instagram4j;
-        this.searchUsers = searchUsers;
-        this.foundUsers = foundUsers;
     }
 
     @Override
@@ -52,7 +47,12 @@ public class FakeUserWorker implements Runnable {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                searchUser = searchUsers.take();
+                searchUser = userRepository.findFirstByIsScannedFalse();
+
+                if(searchUser == null) {
+                    continue;
+                }
+
                 InstagramUser instagramUser = getUser(searchUser.getUserName());
 
                 if(instagramUser == null) {
@@ -62,7 +62,6 @@ public class FakeUserWorker implements Runnable {
                 List<InstagramUserSummary> instagramFollowers = getFollowers(instagramUser.getPk());
 
                 if(Thread.currentThread().isInterrupted()){
-                    searchUsers.add(searchUser);
                     break;
                 }
 
@@ -74,18 +73,14 @@ public class FakeUserWorker implements Runnable {
                     userRepository.save(user);
                 } catch (DataException e) {
                     logger.error("can't update", e);
-                    searchUsers.add(new UserDTO(user.getId(), user.getUserName()));
                     continue;
                 }
-
-                foundUsers.add(user.getUserName());
 
                 List<User> users = new ArrayList<>();
                 Set<Follower> followers = new HashSet<>();
 
                 for(InstagramUserSummary instagramUserSummary : instagramFollowers) {
-                    if(!foundUsers.contains(instagramUserSummary.getUsername())) {
-                        foundUsers.add(instagramUserSummary.getUsername());
+                    if(!userRepository.existsByUserName(instagramUserSummary.getUsername())) {
                         users.add(new User(instagramUserSummary.getUsername() ,false));
                     }
 
@@ -93,12 +88,13 @@ public class FakeUserWorker implements Runnable {
                 }
 
                 userRepository.saveAll(users);
-                searchUsers.addAll(getNewSearchUsers(users));
                 followerRepository.saveAll(followers);
                 logger.error("WORKER NAME = " + instagram.getUsername());
+                userRepository.save(user);
             } catch (InterruptedException e) {
                 logger.error("close worker", e);
-                searchUsers.add(searchUser);
+                searchUser.setScanned(false);
+                userRepository.save(searchUser);
                 Thread.currentThread().interrupt();
             }
             catch (Exception e) {
@@ -115,11 +111,6 @@ public class FakeUserWorker implements Runnable {
             return false;
         }
         return true;
-    }
-
-    private List<UserDTO> getNewSearchUsers(List<User> users) {
-        return users.stream().map(u -> new UserDTO(u.getId(), u.getUserName()))
-                .collect(Collectors.toList());
     }
 
     private InstagramUser getUser(String userName) {
