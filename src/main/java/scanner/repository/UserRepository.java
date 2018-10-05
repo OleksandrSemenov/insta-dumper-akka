@@ -25,4 +25,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<UserDTO> findByIsScannedFalse();
     @Query("select u from User u where fts('simple', u.fullName, :name) = true")
     List<User> findbyFullName(@Param("name")String name);
+    User findFirstByIsScannedFalse();
 }
