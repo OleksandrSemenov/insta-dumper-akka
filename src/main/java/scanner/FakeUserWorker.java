@@ -152,10 +152,6 @@ public class FakeUserWorker implements Runnable {
                         break;
                     }
 
-                    for(int i = 0; i < 1000000;i++) {
-                        System.out.println(i + " i ");
-                    }
-
                     followers.addAll(followersResult.getUsers());
                     nextMaxId = followersResult.getNext_max_id();
 
