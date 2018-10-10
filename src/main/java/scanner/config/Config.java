@@ -23,13 +23,6 @@ public class Config {
     @Bean
     @Scope(value = "prototype")
     @Lazy(value = true)
-    public Instagram4j getInstagram(String userName, String password) {
-        return Instagram4j.builder().username(userName).password(password).build();
-    }
-
-    @Bean
-    @Scope(value = "prototype")
-    @Lazy(value = true)
     public FakeUserWorker getFakeUserWorker(Instagram4j instagram4j) {
         return new FakeUserWorker(instagram4j);
     }
