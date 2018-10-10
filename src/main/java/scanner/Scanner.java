@@ -66,7 +66,7 @@ public class Scanner {
 
     private void fillSearchUsers() {
         if(userRepository.count() == 0) {
-            User user = userRepository.save(new User(INSTAGRAM_USER_UKRAINE, false));
+            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, false));
         }
     }
 
