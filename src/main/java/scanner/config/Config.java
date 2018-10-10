@@ -11,10 +11,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.FakeUserWorker;
 import scanner.Scanner;
 import scanner.dto.UserDTO;
+import scanner.entities.User;
 
 import javax.sql.DataSource;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Configuration
 @EnableTransactionManagement
@@ -30,6 +35,11 @@ public class Config {
     @Bean
     public Scanner getScanner() {
         return new Scanner();
+    }
+
+    @Bean
+    public BlockingQueue<User> scanUsers(){
+        return new LinkedBlockingQueue<User>();
     }
 
 }

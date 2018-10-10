@@ -12,6 +12,7 @@ import scanner.repository.UserRepository;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -27,6 +28,8 @@ public class Scanner {
     private ExecutorService executorService = Executors.newCachedThreadPool();
     private List<FakeUserWorker> workers = new ArrayList<>();
     private List<Future<?>> futures = new ArrayList<>();
+    @Autowired
+    private BlockingQueue<User> scanUsers;
 
     public Scanner() {
         fakeUsers = new ArrayList<>();
@@ -37,6 +40,7 @@ public class Scanner {
         fakeUsers = getFakeUsers();
         fillSearchUsers();
         startWorkers();
+        scanUsers.addAll(userRepository.getSearchUsers());
     }
 
     public void startWorkers() {
