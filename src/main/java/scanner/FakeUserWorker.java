@@ -11,17 +11,17 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.bytedeco.javacv.FrameFilter;
 import org.hibernate.exception.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.PageRequest;
 import scanner.dto.UserDTO;
 import scanner.entities.Follower;
 import scanner.entities.User;
 import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
+import javax.management.Query;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
@@ -34,6 +34,8 @@ public class FakeUserWorker implements Runnable {
     private FollowerRepository followerRepository;
     private final String intagramProfileUrl = "https://www.instagram.com/";
     private User searchUser;
+    @Autowired
+    private BlockingQueue<User> scanUsers;
 
     public FakeUserWorker() {}
 
@@ -47,7 +49,7 @@ public class FakeUserWorker implements Runnable {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                searchUser = userRepository.findFirstByIsScannedFalse();
+                searchUser = scanUsers.take();
 
                 if(searchUser == null) {
                     continue;
@@ -91,6 +93,7 @@ public class FakeUserWorker implements Runnable {
                 followerRepository.saveAll(followers);
                 logger.error("WORKER NAME = " + instagram.getUsername());
                 userRepository.save(user);
+                updateScanUsers();
             } catch (InterruptedException e) {
                 logger.error("close worker", e);
                 searchUser.setScanned(false);
@@ -157,5 +160,11 @@ public class FakeUserWorker implements Runnable {
             }
 
         return followers;
+    }
+
+    private void updateScanUsers(){
+        if(scanUsers.isEmpty()){
+            scanUsers.addAll(userRepository.getSearchUsers());
+        }
     }
 }

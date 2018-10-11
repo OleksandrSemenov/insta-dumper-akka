@@ -13,6 +13,7 @@ import scanner.entities.User;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUserName(String userName);
@@ -25,5 +26,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<UserDTO> findByIsScannedFalse();
     @Query("select u from User u where fts('simple', u.fullName, :name) = true")
     List<User> findbyFullName(@Param("name")String name);
-    User findFirstByIsScannedFalse();
+    @Query(value = "SELECT * FROM users WHERE is_scanned = FALSE ORDER BY id LIMIT 500", nativeQuery = true)
+    List<User> getSearchUsers();
 }
