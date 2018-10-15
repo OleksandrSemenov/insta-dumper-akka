@@ -7,6 +7,7 @@ import org.brunocvcunha.instagram4j.Instagram4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.actors.ScannerActor;
+import scanner.dto.FakeUserDTO;
 import scanner.dto.UserDTO;
 import scanner.entities.FakeUser;
 import scanner.entities.User;
@@ -26,20 +27,18 @@ public class Scanner {
     private FakeUserRepository fakeUserRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private FollowerRepository followerRepository;
     private List<FakeUser> fakeUsers;
     private final String INSTAGRAM_USER_UKRAINE = "ukraine";
     private ActorRef scannerActor;
-
+    @Autowired
+    private ActorSystem system;
     public Scanner() {
         fakeUsers = new ArrayList<>();
     }
 
     @PostConstruct
     public void init() {
-        ActorSystem system = ActorSystem.create("dump-system");
-        scannerActor = system.actorOf(Props.create(ScannerActor.class, userRepository, followerRepository), "scanner");
+        scannerActor = system.actorOf(Props.create(ScannerActor.class), "scanner");
         fakeUsers = getFakeUsers();
         fillSearchUsers();
         startWorkers();
@@ -48,8 +47,7 @@ public class Scanner {
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
-            Instagram4j instagram4j = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
-            scannerActor.tell(instagram4j, ActorRef.noSender());
+            scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
         }
     }
 
@@ -58,8 +56,7 @@ public class Scanner {
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
-        Instagram4j instagram4j = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
-        scannerActor.tell(instagram4j, ActorRef.noSender());
+        scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
     }
 
     private void sendScanUsers(){

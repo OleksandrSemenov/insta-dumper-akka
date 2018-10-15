@@ -10,7 +10,14 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersRe
 import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import scanner.dto.FakeUserDTO;
 import scanner.dto.UserDTO;
+import scanner.entities.FakeUser;
 import scanner.entities.Follower;
 import scanner.entities.User;
 import scanner.repository.FollowerRepository;
@@ -22,33 +29,38 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WorkerActor extends AbstractActor{
     private Instagram4j instagram;
+    @Autowired
     private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(WorkerActor.class);
+    @Autowired
     private FollowerRepository followerRepository;
     private final String intagramProfileUrl = "https://www.instagram.com/";
     private User user;
 
     public WorkerActor(){}
 
-    public WorkerActor(Instagram4j instagram, UserRepository userRepository, FollowerRepository followerRepository){
+    public WorkerActor(Instagram4j instagram){
         this.instagram = instagram;
-        this.userRepository = userRepository;
-        this.followerRepository = followerRepository;
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder().match(UserDTO.class, scanUser -> {
-            logger.error("scan user " + scanUser.getUserName());
             scanUser(scanUser);
+        }).match(FakeUserDTO.class, fakeUser -> {
+            instagram = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
+
+            if (!doLogin()){
+                getSender().tell(Messages.LOGIN_FAILED, self());
+            }
         }).build();
     }
 
     public void scanUser(UserDTO scanUser) {
-        if (!doLogin()) return;
-
         try {
             if (scanUser == null) {
                 return;

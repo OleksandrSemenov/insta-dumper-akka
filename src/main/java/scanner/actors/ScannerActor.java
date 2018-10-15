@@ -7,30 +7,29 @@ import akka.routing.BalancingRoutingLogic;
 import akka.routing.Router;
 import org.apache.log4j.Logger;
 import org.brunocvcunha.instagram4j.Instagram4j;
+import scanner.dto.FakeUserDTO;
 import scanner.dto.UserDTO;
+import scanner.entities.FakeUser;
 import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
+import static scanner.config.SpringExtension.SPRING_EXTENSION_PROVIDER;
+
 public class ScannerActor extends AbstractActor {
     private Router workerRouter = new Router(new BalancingRoutingLogic());
-    private UserRepository userRepository;
-    protected FollowerRepository followerRepository;
     private final Logger logger = Logger.getLogger(ScannerActor.class);
-
-    public ScannerActor(){}
-
-    public ScannerActor(UserRepository userRepository, FollowerRepository followerRepository){
-        this.userRepository = userRepository;
-        this.followerRepository = followerRepository;
-    }
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder().match(Instagram4j.class, instagram -> {
-            workerRouter = workerRouter.addRoutee(ActorRefRoutee.apply(getContext().actorOf(Props.create(WorkerActor.class, instagram, userRepository, followerRepository), "worker")));
+        return receiveBuilder().match(FakeUserDTO.class, fakeUser -> {
+            ActorRefRoutee worker = ActorRefRoutee.apply(getContext().actorOf(SPRING_EXTENSION_PROVIDER.get(getContext().system())
+                    .props("workerActor"), "worker"));
+            workerRouter = workerRouter.addRoutee(worker);
+            worker.send(fakeUser, self());
         }).match(UserDTO.class, scanUser -> {
-            logger.error("scan mailbox " + scanUser.getUserName());
             workerRouter.route(scanUser, self());
+        }).match(Messages.LOGIN_FAILED.getClass(), message -> {
+            workerRouter = workerRouter.removeRoutee(getSender());
         }).build();
     }
 }
