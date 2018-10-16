@@ -1,12 +1,18 @@
 package scanner;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import org.brunocvcunha.instagram4j.Instagram4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import scanner.actors.ScannerActor;
+import scanner.dto.FakeUserDTO;
 import scanner.dto.UserDTO;
 import scanner.entities.FakeUser;
 import scanner.entities.User;
 import scanner.repository.FakeUserRepository;
+import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
@@ -18,54 +24,45 @@ import java.util.concurrent.*;
 
 public class Scanner {
     @Autowired
-    private BeanFactory beanFactory;
-    @Autowired
     private FakeUserRepository fakeUserRepository;
     @Autowired
     private UserRepository userRepository;
     private List<FakeUser> fakeUsers;
     private final String INSTAGRAM_USER_UKRAINE = "ukraine";
-    private ExecutorService executorService = Executors.newCachedThreadPool();
-    private List<FakeUserWorker> workers = new ArrayList<>();
-    private List<Future<?>> futures = new ArrayList<>();
+    private ActorRef scannerActor;
     @Autowired
-    private BlockingQueue<User> scanUsers;
-
+    private ActorSystem system;
     public Scanner() {
         fakeUsers = new ArrayList<>();
     }
 
     @PostConstruct
     public void init() {
+        scannerActor = system.actorOf(Props.create(ScannerActor.class), "scanner");
         fakeUsers = getFakeUsers();
         fillSearchUsers();
         startWorkers();
-        scanUsers.addAll(userRepository.getSearchUsers());
+        sendScanUsers();
     }
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
-            Instagram4j instagram4j = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
-            FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j);
-            workers.add(fakeUserWorker);
-            futures.add(executorService.submit(fakeUserWorker));
+            scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
         }
     }
 
     public void stopWorkers() {
-        for(int i = 0; i < futures.size(); i++) {
-            futures.get(i).cancel(true);
-        }
 
-        futures.clear();
-        workers.clear();
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
-        Instagram4j instagram4j = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
-        FakeUserWorker fakeUserWorker = beanFactory.getBean(FakeUserWorker.class, instagram4j);
-        workers.add(fakeUserWorker);
-        futures.add(executorService.submit(fakeUserWorker));
+        scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+    }
+
+    private void sendScanUsers(){
+        for(User user : userRepository.getSearchUsers()){
+            scannerActor.tell(new UserDTO(user.getId(), user.getUserName()), ActorRef.noSender());
+        }
     }
 
     private void fillSearchUsers() {
