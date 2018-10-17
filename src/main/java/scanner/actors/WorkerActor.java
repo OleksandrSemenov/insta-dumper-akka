@@ -79,7 +79,11 @@ public class WorkerActor extends AbstractActor{
             List<InstagramUserSummary> instagramFollowers = getFollowers(instagramUser.getPk());
 
             user = User.instagramUserToUserEntity(instagramUser);
-            user.setId(scanUser.getId());
+            
+            if(scanUser.getId() != 0){
+                user.setId(scanUser.getId());
+            }
+
             user.setScanned(true);
 
             List<User> users = new ArrayList<>();
