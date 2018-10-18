@@ -50,13 +50,17 @@ public class WorkerActor extends AbstractActor{
     @Override
     public Receive createReceive() {
         return receiveBuilder().match(UserDTO.class, scanUser -> {
+            logger.info("start scan user " + scanUser.getUserName());
             scanUser(scanUser);
         }).match(FakeUserDTO.class, fakeUser -> {
             instagram = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
 
             if (!doLogin()){
                 getSender().tell(Messages.LOGIN_FAILED, self());
+                logger.error("failed start fake user " + fakeUser.getUserName());
             }
+
+            logger.info("fake user started ok" + fakeUser.getUserName());
         }).build();
     }
 
@@ -75,7 +79,11 @@ public class WorkerActor extends AbstractActor{
             List<InstagramUserSummary> instagramFollowers = getFollowers(instagramUser.getPk());
 
             user = User.instagramUserToUserEntity(instagramUser);
-            user.setId(scanUser.getId());
+            
+            if(scanUser.getId() != 0){
+                user.setId(scanUser.getId());
+            }
+
             user.setScanned(true);
 
             List<User> users = new ArrayList<>();

@@ -25,11 +25,13 @@ public class ScannerActor extends AbstractActor {
             ActorRefRoutee worker = ActorRefRoutee.apply(getContext().actorOf(SPRING_EXTENSION_PROVIDER.get(getContext().system())
                     .props("workerActor"), "worker"));
             workerRouter = workerRouter.addRoutee(worker);
+            logger.info("added new routee " + fakeUser.getUserName());
             worker.send(fakeUser, self());
         }).match(UserDTO.class, scanUser -> {
             workerRouter.route(scanUser, self());
         }).match(Messages.LOGIN_FAILED.getClass(), message -> {
             workerRouter = workerRouter.removeRoutee(getSender());
+            logger.error("removing routee");
         }).build();
     }
 }

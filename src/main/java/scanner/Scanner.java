@@ -35,6 +35,7 @@ public class Scanner {
     public Scanner() {
         fakeUsers = new ArrayList<>();
     }
+    private boolean scannerWork;
 
     @PostConstruct
     public void init() {
@@ -43,6 +44,7 @@ public class Scanner {
         fillSearchUsers();
         startWorkers();
         sendScanUsers();
+        scannerWork = true;
     }
 
     public void startWorkers() {
@@ -51,12 +53,25 @@ public class Scanner {
         }
     }
 
+    public void startScanWithName(String name){
+        startWorkers();
+        scannerActor.tell(new UserDTO(0, name), ActorRef.noSender());
+    }
+
     public void stopWorkers() {
 
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
         scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+    }
+
+    public boolean isScannerWork() {
+        return scannerWork;
+    }
+
+    public void setScannerWork(boolean scannerWork) {
+        this.scannerWork = scannerWork;
     }
 
     private void sendScanUsers(){
