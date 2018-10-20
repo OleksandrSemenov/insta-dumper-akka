@@ -2,6 +2,11 @@ package scanner.actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.InvalidMessageException;
+import akka.pattern.Patterns;
+import akka.routing.ActorRefRoutee;
+import akka.routing.Router;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.log4j.Logger;
 import org.brunocvcunha.instagram4j.Instagram4j;
 import org.brunocvcunha.instagram4j.requests.InstagramGetUserFollowersRequest;
@@ -12,12 +17,9 @@ import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import scanner.dto.FakeUserDTO;
-import scanner.dto.UserDTO;
-import scanner.entities.FakeUser;
+import scanner.actors.messages.*;
 import scanner.entities.Follower;
 import scanner.entities.User;
 import scanner.repository.FollowerRepository;
@@ -28,6 +30,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import scala.concurrent.Future;
+import scala.concurrent.Await;
+import akka.util.Timeout;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -36,10 +43,9 @@ public class WorkerActor extends AbstractActor{
     @Autowired
     private UserRepository userRepository;
     private final Logger logger = Logger.getLogger(WorkerActor.class);
-    @Autowired
-    private FollowerRepository followerRepository;
-    private final String intagramProfileUrl = "https://www.instagram.com/";
     private User user;
+    private ActorRef fakeUserManagerActor;
+    private Router followerRouter;
 
     public WorkerActor(){}
 
@@ -49,34 +55,41 @@ public class WorkerActor extends AbstractActor{
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder().match(UserDTO.class, scanUser -> {
+        return receiveBuilder().match(ScanUserMsg.class, scanUser -> {
             logger.info("start scan user " + scanUser.getUserName());
             scanUser(scanUser);
-        }).match(FakeUserDTO.class, fakeUser -> {
-            instagram = Instagram4j.builder().username(fakeUser.getUserName()).password(fakeUser.getPassword()).build();
+        }).match(AddFakeUserMsg.class, fakeUserMsg -> {
+            instagram = Instagram4j.builder().username(fakeUserMsg.getUserName()).password(fakeUserMsg.getPassword()).build();
 
             if (!doLogin()){
-                getSender().tell(Messages.LOGIN_FAILED, self());
-                logger.error("failed start fake user " + fakeUser.getUserName());
+                getSender().tell(SimpleMessages.LOGIN_FAILED, self());
+                logger.error("failed start fake user " + fakeUserMsg.getUserName());
             }
 
-            logger.info("fake user started ok" + fakeUser.getUserName());
+            getSender().tell(new LoginSuccessfulMsg(instagram), getSelf());
+            instagram = null;
+            logger.info("fake user started ok" + fakeUserMsg.getUserName());
+        }).match(TransferFakeUserManagerActorMsg.class, transferFakeUserManagerActorMsg -> {
+            fakeUserManagerActor = transferFakeUserManagerActorMsg.getFakeUserManagerActor();
+            logger.info("have ref to fakeUserManagerActor");
+        }).match(TransferFollowersRouterMsg.class, transferFollowersRouterMsg -> {
+            followerRouter = transferFollowersRouterMsg.getFollowersRouter();
+            logger.info("have ref to followerRouter");
         }).build();
     }
 
-    public void scanUser(UserDTO scanUser) {
+    public void scanUser(ScanUserMsg scanUser) {
         try {
             if (scanUser == null) {
                 return;
             }
 
+            instagram = FakeUserManagerActor.getFreeFakeUser(fakeUserManagerActor);
             InstagramUser instagramUser = getUser(scanUser.getUserName());
 
             if (instagramUser == null) {
                 return;
             }
-
-            List<InstagramUserSummary> instagramFollowers = getFollowers(instagramUser.getPk());
 
             user = User.instagramUserToUserEntity(instagramUser);
             
@@ -85,26 +98,9 @@ public class WorkerActor extends AbstractActor{
             }
 
             user.setScanned(true);
-
-            List<User> users = new ArrayList<>();
-            Set<Follower> followers = new HashSet<>();
-
-            for (InstagramUserSummary instagramUserSummary : instagramFollowers) {
-                if (!userRepository.existsByUserName(instagramUserSummary.getUsername())) {
-                    users.add(new User(instagramUserSummary.getUsername(), false));
-                }
-
-                followers.add(new Follower(user, intagramProfileUrl + instagramUserSummary.getUsername()));
-            }
-
-            userRepository.saveAll(users);
-            followerRepository.saveAll(followers);
-            logger.error("WORKER NAME = " + instagram.getUsername());
             userRepository.save(user);
-
-            for (User applyScanUser : users) {
-                getSender().tell(new UserDTO(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
-            }
+            fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
+            followerRouter.route(new ScanUserFollowerMsg(instagramUser.getPk(), user), getSelf());
         } catch (Exception e) {
             logger.error("socket exception", e);
             user.setScanned(false);
@@ -136,35 +132,5 @@ public class WorkerActor extends AbstractActor{
     private void login() throws IOException {
         instagram.setup();
         instagram.login();
-    }
-
-    private List<InstagramUserSummary> getFollowers(long id) throws InterruptedException {
-        List<InstagramUserSummary> followers = new ArrayList<>();
-        String nextMaxId = null;
-        final int SLEEP_ONE_SECOND = 1000;
-
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
-
-                if (followersResult == null || followersResult.getUsers() == null) {
-                    logger.info("for this id = " + id + " 0 followers");
-                    break;
-                }
-
-                followers.addAll(followersResult.getUsers());
-                nextMaxId = followersResult.getNext_max_id();
-
-                if (nextMaxId == null) {
-                    break;
-                }
-
-                Thread.sleep(SLEEP_ONE_SECOND);
-            } catch (IOException e) {
-                logger.error("get followers ", e);
-            }
-        }
-
-        return followers;
     }
 }

@@ -7,6 +7,8 @@ import org.brunocvcunha.instagram4j.Instagram4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.actors.ScannerActor;
+import scanner.actors.messages.AddFakeUserMsg;
+import scanner.actors.messages.ScanUserMsg;
 import scanner.dto.FakeUserDTO;
 import scanner.dto.UserDTO;
 import scanner.entities.FakeUser;
@@ -49,7 +51,7 @@ public class Scanner {
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
-            scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+            scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
         }
     }
 
@@ -63,7 +65,7 @@ public class Scanner {
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
-        scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+        scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
     }
 
     public boolean isScannerWork() {
@@ -76,7 +78,7 @@ public class Scanner {
 
     private void sendScanUsers(){
         for(User user : userRepository.getSearchUsers()){
-            scannerActor.tell(new UserDTO(user.getId(), user.getUserName()), ActorRef.noSender());
+            scannerActor.tell(new ScanUserMsg(user.getId(), user.getUserName()), ActorRef.noSender());
         }
     }
 
