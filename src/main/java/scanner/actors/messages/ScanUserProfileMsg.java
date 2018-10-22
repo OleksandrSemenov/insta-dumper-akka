@@ -1,10 +1,10 @@
 package scanner.actors.messages;
 
-public class ScanUserMsg {
+public class ScanUserProfileMsg {
     private int id;
     private String userName;
 
-    public ScanUserMsg(int id, String userName) {
+    public ScanUserProfileMsg(int id, String userName) {
         this.id = id;
         this.userName = userName;
     }

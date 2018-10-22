@@ -8,10 +8,7 @@ import akka.routing.BalancingRoutingLogic;
 import akka.routing.BroadcastRoutingLogic;
 import akka.routing.Router;
 import org.apache.log4j.Logger;
-import org.brunocvcunha.instagram4j.Instagram4j;
 import scanner.actors.messages.*;
-import scanner.dto.FakeUserDTO;
-import scanner.dto.UserDTO;
 
 import static scanner.config.SpringExtension.SPRING_EXTENSION_PROVIDER;
 
@@ -42,13 +39,16 @@ public class ScannerActor extends AbstractActor {
             worker.send(fakeUserMsg, self());
             worker.send(new TransferFakeUserManagerActorMsg(fakeUserManagerActor), self());
             workerRouterBroadcast.route(new TransferFollowersRouterMsg(followerRouter), self());
-        }).match(ScanUserMsg.class, scanUserMsg -> {
-            workerRouter.route(scanUserMsg, self());
+        }).match(ScanUserProfileMsg.class, scanUserProfileMsg -> {
+            workerRouter.route(scanUserProfileMsg, self());
         }).match(SimpleMessages.LOGIN_FAILED.getClass(), message -> {
             workerRouter = workerRouter.removeRoutee(getSender());
             logger.error("removing routee");
         }).match(LoginSuccessfulMsg.class, loginSuccessfulMsg -> {
             fakeUserManagerActor.tell(loginSuccessfulMsg, getSelf());
+        }).match(ScanUserFollowerMsg.class, scanUserFollowerMsg -> {
+            System.out.println("GET ID " + scanUserFollowerMsg.getEntityUser().getUserName());
+            followerRouter.route(scanUserFollowerMsg, self());
         }).build();
     }
 }

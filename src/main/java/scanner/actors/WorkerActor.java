@@ -2,39 +2,22 @@ package scanner.actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
-import akka.actor.InvalidMessageException;
-import akka.pattern.Patterns;
-import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.log4j.Logger;
 import org.brunocvcunha.instagram4j.Instagram4j;
-import org.brunocvcunha.instagram4j.requests.InstagramGetUserFollowersRequest;
 import org.brunocvcunha.instagram4j.requests.InstagramSearchUsernameRequest;
-import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramSearchUsernameResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
-import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import scanner.actors.messages.*;
-import scanner.entities.Follower;
+import scanner.entities.ScanStatus;
 import scanner.entities.User;
-import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import scala.concurrent.Future;
-import scala.concurrent.Await;
-import akka.util.Timeout;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -55,7 +38,7 @@ public class WorkerActor extends AbstractActor{
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder().match(ScanUserMsg.class, scanUser -> {
+        return receiveBuilder().match(ScanUserProfileMsg.class, scanUser -> {
             logger.info("start scan user " + scanUser.getUserName());
             scanUser(scanUser);
         }).match(AddFakeUserMsg.class, fakeUserMsg -> {
@@ -78,7 +61,7 @@ public class WorkerActor extends AbstractActor{
         }).build();
     }
 
-    public void scanUser(ScanUserMsg scanUser) {
+    public void scanUser(ScanUserProfileMsg scanUser) {
         try {
             if (scanUser == null) {
                 return;
@@ -97,13 +80,13 @@ public class WorkerActor extends AbstractActor{
                 user.setId(scanUser.getId());
             }
 
-            user.setScanned(true);
+            user.setScanStatus(ScanStatus.CompleteProfile);
             userRepository.save(user);
             fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
             followerRouter.route(new ScanUserFollowerMsg(instagramUser.getPk(), user), getSelf());
         } catch (Exception e) {
             logger.error("socket exception", e);
-            user.setScanned(false);
+            user.setScanStatus(ScanStatus.NotScanned);
             userRepository.save(user);
         }
     }

@@ -3,26 +3,21 @@ package scanner;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import org.brunocvcunha.instagram4j.Instagram4j;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.actors.ScannerActor;
 import scanner.actors.messages.AddFakeUserMsg;
-import scanner.actors.messages.ScanUserMsg;
-import scanner.dto.FakeUserDTO;
+import scanner.actors.messages.ScanUserFollowerMsg;
+import scanner.actors.messages.ScanUserProfileMsg;
 import scanner.dto.UserDTO;
 import scanner.entities.FakeUser;
+import scanner.entities.ScanStatus;
 import scanner.entities.User;
 import scanner.repository.FakeUserRepository;
-import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.*;
 
 public class Scanner {
     @Autowired
@@ -77,14 +72,25 @@ public class Scanner {
     }
 
     private void sendScanUsers(){
-        for(User user : userRepository.getSearchUsers()){
-            scannerActor.tell(new ScanUserMsg(user.getId(), user.getUserName()), ActorRef.noSender());
+        List<UserDTO> scanProfile = userRepository.getUsersForScanProfile();
+        List<User> scanFollowers = userRepository.getUsersForScanFollowers();
+
+        if(scanProfile.isEmpty() && scanFollowers.isEmpty()){
+            scannerActor.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
+        }
+
+        for(UserDTO scanProf : scanProfile){
+            scannerActor.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
+        }
+
+        for(User scanFollow : scanFollowers){
+            scannerActor.tell(new ScanUserFollowerMsg(scanFollow.getPk(), scanFollow), ActorRef.noSender());
         }
     }
 
     private void fillSearchUsers() {
         if(userRepository.count() == 0) {
-            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, false));
+            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, ScanStatus.NotScanned));
         }
     }
 

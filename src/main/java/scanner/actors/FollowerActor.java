@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import scanner.actors.messages.*;
 import scanner.entities.Follower;
+import scanner.entities.ScanStatus;
 import scanner.entities.User;
 import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
@@ -59,7 +60,7 @@ public class FollowerActor extends AbstractActor {
 
             for (InstagramUserSummary instagramUserSummary : instagramFollowers) {
                 if (!userRepository.existsByUserName(instagramUserSummary.getUsername())) {
-                    users.add(new User(instagramUserSummary.getUsername(), false));
+                    users.add(new User(instagramUserSummary.getUsername(), ScanStatus.NotScanned));
                 }
 
                 followers.add(new Follower(scanUserFollowerMsg.getEntityUser(), intagramProfileUrl + instagramUserSummary.getUsername()));
@@ -67,11 +68,12 @@ public class FollowerActor extends AbstractActor {
 
             userRepository.saveAll(users);
             followerRepository.saveAll(followers);
+            scanUserFollowerMsg.getEntityUser().setScanStatus(ScanStatus.CompleteFollowers);
             userRepository.save(scanUserFollowerMsg.getEntityUser());
             fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
 
             for (User applyScanUser : users) {
-                scannerActor.tell(new ScanUserMsg(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
+                scannerActor.tell(new ScanUserProfileMsg(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
             }
     }
 
