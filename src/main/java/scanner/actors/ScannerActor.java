@@ -47,7 +47,6 @@ public class ScannerActor extends AbstractActor {
         }).match(LoginSuccessfulMsg.class, loginSuccessfulMsg -> {
             fakeUserManagerActor.tell(loginSuccessfulMsg, getSelf());
         }).match(ScanUserFollowerMsg.class, scanUserFollowerMsg -> {
-            System.out.println("GET ID " + scanUserFollowerMsg.getEntityUser().getUserName());
             followerRouter.route(scanUserFollowerMsg, self());
         }).build();
     }

@@ -3,6 +3,7 @@ package scanner;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.actors.ScannerActor;
 import scanner.actors.messages.AddFakeUserMsg;
@@ -33,6 +34,7 @@ public class Scanner {
         fakeUsers = new ArrayList<>();
     }
     private boolean scannerWork;
+    private final Logger logger = Logger.getLogger(Scanner.class);
 
     @PostConstruct
     public void init() {
@@ -73,7 +75,7 @@ public class Scanner {
 
     private void sendScanUsers(){
         List<UserDTO> scanProfile = userRepository.getUsersForScanProfile();
-        List<User> scanFollowers = userRepository.getUsersForScanFollowers();
+        List<UserDTO> scanFollowers = userRepository.getUsersForScanFollowers();
 
         if(scanProfile.isEmpty() && scanFollowers.isEmpty()){
             scannerActor.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
@@ -83,8 +85,8 @@ public class Scanner {
             scannerActor.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
         }
 
-        for(User scanFollow : scanFollowers){
-            scannerActor.tell(new ScanUserFollowerMsg(scanFollow.getPk(), scanFollow), ActorRef.noSender());
+        for(UserDTO scanFollow : scanFollowers){
+            scannerActor.tell(new ScanUserFollowerMsg(scanFollow.getPk(), new User(scanFollow.getId(), scanFollow.getUserName())), ActorRef.noSender());
         }
     }
 

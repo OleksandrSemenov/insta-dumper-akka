@@ -2,6 +2,7 @@ package scanner.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUser;
+import scala.Int;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -83,6 +84,11 @@ public class User implements Serializable {
     private Set<Follower> followers;
 
     public User() {}
+
+    public User(Integer id, String userName){
+        this.id = id;
+        this.userName = userName;
+    }
 
     public User(String userName, ScanStatus scanStatus) {
         this.userName = userName;
@@ -411,16 +417,16 @@ public class User implements Serializable {
         this.zip = zip;
     }
 
+    public Set<Follower> getFollowers() {
+        return followers;
+    }
+
     public ScanStatus getScanStatus() {
         return scanStatus;
     }
 
     public void setScanStatus(ScanStatus scanStatus) {
         this.scanStatus = scanStatus;
-    }
-
-    public Set<Follower> getFollowers() {
-        return followers;
     }
 
     public void setFollowers(Set<Follower> followers) {

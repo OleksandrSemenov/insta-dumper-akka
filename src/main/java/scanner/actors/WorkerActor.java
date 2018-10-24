@@ -71,6 +71,7 @@ public class WorkerActor extends AbstractActor{
             InstagramUser instagramUser = getUser(scanUser.getUserName());
 
             if (instagramUser == null) {
+                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
                 return;
             }
 
@@ -88,6 +89,7 @@ public class WorkerActor extends AbstractActor{
             logger.error("socket exception", e);
             user.setScanStatus(ScanStatus.NotScanned);
             userRepository.save(user);
+            fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
         }
     }
 

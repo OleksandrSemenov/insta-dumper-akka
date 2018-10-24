@@ -1,22 +1,14 @@
 package scanner.repository;
 
-import org.hibernate.Session;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 import scanner.dto.UserDTO;
-import scanner.entities.ScanStatus;
 import scanner.entities.User;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 
-@Transactional
 public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUserName(String userName);
     User findByUserName(String userName);
@@ -34,6 +26,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("select new scanner.dto.UserDTO(u.id, u.userName) from User u where u.scanStatus = 0")
     List<UserDTO> getUsersForScanProfile();
 
-    @Query("select u from User u where u.scanStatus = 1")
-    List<User> getUsersForScanFollowers();
+    @Query("select new scanner.dto.UserDTO(u.id, u.userName, u.pk) from User u where u.scanStatus = 1")
+    List<UserDTO> getUsersForScanFollowers();
 }
