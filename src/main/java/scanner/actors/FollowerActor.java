@@ -37,15 +37,15 @@ public class FollowerActor extends AbstractActor {
     private final String intagramProfileUrl = "https://www.instagram.com/";
     private ActorRef scannerActor;
 
+    public FollowerActor(){
+        fakeUserManagerActor = ScannerActor.getActor(getContext().getSystem(), ScannerActor.FAKE_USER_MANAGER_ACTOR_PATH);
+        scannerActor = ScannerActor.getActor(getContext().getSystem(), ScannerActor.SCANNER_ACTOR_PATH);
+    }
+
     @Override
     public Receive createReceive() {
-        return receiveBuilder().match(TransferFakeUserManagerActorMsg.class, transferFakeUserManagerActorMsg -> {
-            fakeUserManagerActor = transferFakeUserManagerActorMsg.getFakeUserManagerActor();
-            logger.info("have ref to fakeUserManagerActor");
-        }).match(ScanUserFollowerMsg.class, scanUserMsg -> {
+        return receiveBuilder().match(ScanUserFollowerMsg.class, scanUserMsg -> {
             getUserFollowers(scanUserMsg);
-        }).match(TransferScannerActorMsg.class, transferScannerActorMsg -> {
-            scannerActor = transferScannerActorMsg.getScannerActor();
         }).build();
     }
 

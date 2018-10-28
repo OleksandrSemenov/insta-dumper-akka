@@ -30,7 +30,9 @@ public class WorkerActor extends AbstractActor{
     private ActorRef fakeUserManagerActor;
     private Router followerRouter;
 
-    public WorkerActor(){}
+    public WorkerActor(){
+        fakeUserManagerActor = ScannerActor.getActor(getContext().getSystem(), ScannerActor.FAKE_USER_MANAGER_ACTOR_PATH);
+    }
 
     public WorkerActor(Instagram4j instagram){
         this.instagram = instagram;
@@ -52,9 +54,6 @@ public class WorkerActor extends AbstractActor{
             getSender().tell(new LoginSuccessfulMsg(instagram), getSelf());
             instagram = null;
             logger.info("fake user started ok" + fakeUserMsg.getUserName());
-        }).match(TransferFakeUserManagerActorMsg.class, transferFakeUserManagerActorMsg -> {
-            fakeUserManagerActor = transferFakeUserManagerActorMsg.getFakeUserManagerActor();
-            logger.info("have ref to fakeUserManagerActor");
         }).match(TransferFollowersRouterMsg.class, transferFollowersRouterMsg -> {
             followerRouter = transferFollowersRouterMsg.getFollowersRouter();
             logger.info("have ref to followerRouter");
