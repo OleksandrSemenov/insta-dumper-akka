@@ -39,7 +39,7 @@ public class FakeUserManagerActor extends AbstractActor {
             for(Map.Entry<Instagram4j, Boolean> fakeUser : fakeUsers.entrySet()){
                 if(fakeUser.getValue() == true){
                     fakeUser.setValue(false);
-                    getSender().tell(fakeUser.getKey(), getSelf());
+                    getSender().tell(new ResultGetFreeFakeUserMsg(fakeUser.getKey()), getSelf());
                     break;
                 }
             }
