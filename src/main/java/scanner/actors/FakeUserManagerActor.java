@@ -49,7 +49,7 @@ public class FakeUserManagerActor extends AbstractActor {
     }
 
     public static Instagram4j getFreeFakeUser(ActorRef fakeUserManagerActor){
-        ResultGetFreeFakeUserMsg result = null;
+        ResultGetFreeFakeUserMsg result = new ResultGetFreeFakeUserMsg(null);
 
         do {
             Timeout timeout = new Timeout(5, TimeUnit.SECONDS);
