@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scanner.actors.messages.LoginSuccessfulMsg;
+import scanner.actors.messages.ResultGetFreeFakeUserMsg;
 import scanner.actors.messages.SetFreeFakeUserMsg;
 import scanner.actors.messages.SimpleMessages;
 
@@ -32,7 +33,7 @@ public class FakeUserManagerActor extends AbstractActor {
             logger.info("Set new fake instagram " + loginSuccessfulMsg.getInstagram().getUsername());
         }).match(SimpleMessages.GET_FREE_FAKE_USER.getClass(), msg -> {
             if(!fakeUsers.containsValue(true)){
-                getSender().tell(null, getSelf());
+                getSender().tell(new ResultGetFreeFakeUserMsg(null), getSelf());
             }
 
             for(Map.Entry<Instagram4j, Boolean> fakeUser : fakeUsers.entrySet()){
@@ -48,18 +49,19 @@ public class FakeUserManagerActor extends AbstractActor {
     }
 
     public static Instagram4j getFreeFakeUser(ActorRef fakeUserManagerActor){
-        Instagram4j instagram = null;
+        ResultGetFreeFakeUserMsg result = null;
+
         do {
             Timeout timeout = new Timeout(5, TimeUnit.SECONDS);
             Future<Object> future = Patterns.ask(fakeUserManagerActor, SimpleMessages.GET_FREE_FAKE_USER, timeout);
 
             try {
-                instagram = (Instagram4j) Await.result(future, timeout.duration());
+                result = (ResultGetFreeFakeUserMsg) Await.result(future, timeout.duration());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }while (instagram == null);
+        }while (result.getInstagram() == null);
 
-        return instagram;
+        return result.getInstagram();
     }
 }
