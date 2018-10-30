@@ -3,24 +3,22 @@ package scanner;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import org.brunocvcunha.instagram4j.Instagram4j;
-import org.springframework.beans.factory.BeanFactory;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import scanner.actors.ScannerActor;
-import scanner.dto.FakeUserDTO;
+import scanner.actors.messages.AddFakeUserMsg;
+import scanner.actors.messages.ScanUserFollowerMsg;
+import scanner.actors.messages.ScanUserProfileMsg;
 import scanner.dto.UserDTO;
 import scanner.entities.FakeUser;
+import scanner.entities.ScanStatus;
 import scanner.entities.User;
 import scanner.repository.FakeUserRepository;
-import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.*;
 
 public class Scanner {
     @Autowired
@@ -36,6 +34,7 @@ public class Scanner {
         fakeUsers = new ArrayList<>();
     }
     private boolean scannerWork;
+    private final Logger logger = Logger.getLogger(Scanner.class);
 
     @PostConstruct
     public void init() {
@@ -49,7 +48,7 @@ public class Scanner {
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
-            scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+            scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
         }
     }
 
@@ -63,7 +62,7 @@ public class Scanner {
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
-        scannerActor.tell(new FakeUserDTO(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+        scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
     }
 
     public boolean isScannerWork() {
@@ -75,14 +74,25 @@ public class Scanner {
     }
 
     private void sendScanUsers(){
-        for(User user : userRepository.getSearchUsers()){
-            scannerActor.tell(new UserDTO(user.getId(), user.getUserName()), ActorRef.noSender());
+        List<UserDTO> scanProfile = userRepository.getUsersForScanProfile();
+        List<UserDTO> scanFollowers = userRepository.getUsersForScanFollowers();
+
+        if(scanProfile.isEmpty() && scanFollowers.isEmpty()){
+            scannerActor.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
+        }
+
+        for(UserDTO scanProf : scanProfile){
+            scannerActor.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
+        }
+
+        for(UserDTO scanFollow : scanFollowers){
+            scannerActor.tell(new ScanUserFollowerMsg(scanFollow.getPk(), new User(scanFollow.getId(), scanFollow.getUserName())), ActorRef.noSender());
         }
     }
 
     private void fillSearchUsers() {
         if(userRepository.count() == 0) {
-            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, false));
+            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, ScanStatus.NotScanned));
         }
     }
 
