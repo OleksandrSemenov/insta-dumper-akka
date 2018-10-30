@@ -1,7 +1,5 @@
 package scanner.entities;
 
-import org.springframework.web.bind.annotation.GetMapping;
-
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -15,13 +13,13 @@ public class Follower implements Serializable{
     @JoinColumn(name ="userId", nullable = false)
     private User user;
     @Column(nullable = false)
-    private String url;
+    private String userName;
 
     public Follower() {}
 
-    public Follower(User user, String url) {
+    public Follower(User user, String userName) {
         this.user = user;
-        this.url = url;
+        this.userName = userName;
     }
 
     public Integer getId() {
@@ -40,11 +38,11 @@ public class Follower implements Serializable{
         this.user = user;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

@@ -34,7 +34,6 @@ public class FollowerActor extends AbstractActor {
     private UserRepository userRepository;
     private ActorRef fakeUserManagerActor;
     private Instagram4j instagram;
-    private final String intagramProfileUrl = "https://www.instagram.com/";
     private ActorRef scannerActor;
 
     public FollowerActor(){
@@ -63,7 +62,7 @@ public class FollowerActor extends AbstractActor {
                     users.add(new User(instagramUserSummary.getUsername(), ScanStatus.NotScanned));
                 }
 
-                followers.add(new Follower(scanUserFollowerMsg.getEntityUser(), intagramProfileUrl + instagramUserSummary.getUsername()));
+                followers.add(new Follower(scanUserFollowerMsg.getEntityUser(), instagramUserSummary.getUsername()));
             }
 
             userRepository.saveAll(users);

@@ -92,7 +92,7 @@ public class Scanner {
 
     private void fillSearchUsers() {
         if(userRepository.count() == 0) {
-            userRepository.save(new User(INSTAGRAM_USER_UKRAINE, ScanStatus.NotScanned));
+            userRepository.save(new User("sasha_hudyma", ScanStatus.NotScanned));
         }
     }
 
