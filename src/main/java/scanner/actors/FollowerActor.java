@@ -33,7 +33,6 @@ public class FollowerActor extends AbstractActor {
     @Autowired
     private UserRepository userRepository;
     private ActorRef fakeUserManagerActor;
-    private Instagram4j instagram;
     private ActorRef scannerActor;
 
     public FollowerActor(){
@@ -51,7 +50,6 @@ public class FollowerActor extends AbstractActor {
     private void getUserFollowers(ScanUserFollowerMsg scanUserFollowerMsg){
         logger.info("start get followers user " + scanUserFollowerMsg.getEntityUser().getUserName());
 
-        instagram = FakeUserManagerActor.getFreeFakeUser(fakeUserManagerActor);
         List<InstagramUserSummary> instagramFollowers = getFollowers(scanUserFollowerMsg.getIntagramId());
 
         List<User> users = new ArrayList<>();
@@ -69,7 +67,6 @@ public class FollowerActor extends AbstractActor {
             followerRepository.saveAll(followers);
             scanUserFollowerMsg.getEntityUser().setScanStatus(ScanStatus.CompleteFollowers);
             userRepository.save(scanUserFollowerMsg.getEntityUser());
-            fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
 
             for (User applyScanUser : users) {
                 scannerActor.tell(new ScanUserProfileMsg(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
@@ -80,10 +77,13 @@ public class FollowerActor extends AbstractActor {
         List<InstagramUserSummary> followers = new ArrayList<>();
         String nextMaxId = null;
         final int SLEEP_ONE_SECOND = 1000;
+        Instagram4j instagram;
 
         while (true) {
             try {
+                instagram = FakeUserManagerActor.getFreeFakeUser(fakeUserManagerActor);
                 InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
+                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
                 logger.info("GET FOLLOWERS FROM ==================================== " + id);
 
                 if (followersResult == null || followersResult.getUsers() == null) {
