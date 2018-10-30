@@ -53,17 +53,4 @@ public class UserRestController {
 
         return user;
     }
-
-    @RequestMapping(value = "/fullname/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ResponseBody
-    public List<User> getUsersByFullName(@PathVariable("name") String fullName) {
-        //String search = fullName.trim().replaceAll(Pattern.quote(" ")," & ");
-        List<User> users = userRepository.findbyFullName(fullName);
-
-        if(users.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        return users;
-    }
 }

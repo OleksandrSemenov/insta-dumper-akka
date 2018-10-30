@@ -18,8 +18,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Set<String> getFoundUsers();
     @Query("select new scanner.dto.UserDTO(u.id, u.userName) from User u where u.scanStatus = 0")
     List<UserDTO> findByIsScannedFalse();
-    @Query("select u from User u where fts('simple', u.fullName, :name) = true")
-    List<User> findbyFullName(@Param("name")String name);
     @Query(value = "SELECT * FROM users WHERE scan_status = 0 ORDER BY id LIMIT 500", nativeQuery = true)
     List<User> getSearchUsers();
 
