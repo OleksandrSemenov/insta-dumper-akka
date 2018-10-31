@@ -51,7 +51,7 @@ public class FollowerActor extends AbstractActor {
     private void getUserFollowers(ScanUserFollowerMsg scanUserFollowerMsg){
         logger.info("start get followers user " + scanUserFollowerMsg.getEntityUser().getUserName());
 
-        List<InstagramUserSummary> instagramFollowers = getFollowers(scanUserFollowerMsg.getIntagramId());
+        List<InstagramUserSummary> instagramFollowers = getFollowers(scanUserFollowerMsg.getEntityUser().getPk());
 
         List<User> users = new ArrayList<>();
             Set<Follower> followers = new HashSet<>();

@@ -83,7 +83,7 @@ public class WorkerActor extends AbstractActor{
             user.setScanStatus(ScanStatus.CompleteProfile);
             userRepository.save(user);
             fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
-            followerRouter.route(new ScanUserFollowerMsg(instagramUser.getPk(), user), getSelf());
+            followerRouter.route(new ScanUserFollowerMsg(user), getSelf());
         } catch (Exception e) {
             logger.error("socket exception", e);
             user.setScanStatus(ScanStatus.NotScanned);
