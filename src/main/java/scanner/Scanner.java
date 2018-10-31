@@ -75,7 +75,7 @@ public class Scanner {
 
     private void sendScanUsers(){
         List<UserDTO> scanProfile = userRepository.getUsersForScanProfile();
-        List<UserDTO> scanFollowers = userRepository.getUsersForScanFollowers();
+        List<User> scanFollowers = userRepository.getUsersForScanFollowers();
 
         if(scanProfile.isEmpty() && scanFollowers.isEmpty()){
             scannerActor.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
@@ -85,8 +85,8 @@ public class Scanner {
             scannerActor.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
         }
 
-        for(UserDTO scanFollow : scanFollowers){
-            scannerActor.tell(new ScanUserFollowerMsg(scanFollow.getPk(), new User(scanFollow.getId(), scanFollow.getUserName())), ActorRef.noSender());
+        for(User scanFollow : scanFollowers){
+            scannerActor.tell(new ScanUserFollowerMsg(scanFollow), ActorRef.noSender());
         }
     }
 

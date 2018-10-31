@@ -7,6 +7,7 @@ import org.brunocvcunha.instagram4j.Instagram4j;
 import org.brunocvcunha.instagram4j.requests.InstagramGetUserFollowersRequest;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
+import org.bytedeco.javacv.FrameFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -50,7 +51,7 @@ public class FollowerActor extends AbstractActor {
     private void getUserFollowers(ScanUserFollowerMsg scanUserFollowerMsg){
         logger.info("start get followers user " + scanUserFollowerMsg.getEntityUser().getUserName());
 
-        List<InstagramUserSummary> instagramFollowers = getFollowers(scanUserFollowerMsg.getIntagramId());
+        List<InstagramUserSummary> instagramFollowers = getFollowers(scanUserFollowerMsg.getEntityUser().getPk());
 
         List<User> users = new ArrayList<>();
             Set<Follower> followers = new HashSet<>();
@@ -77,7 +78,7 @@ public class FollowerActor extends AbstractActor {
         List<InstagramUserSummary> followers = new ArrayList<>();
         String nextMaxId = null;
         final int SLEEP_ONE_SECOND = 1000;
-        Instagram4j instagram;
+        Instagram4j instagram = null;
 
         while (true) {
             try {
@@ -103,7 +104,8 @@ public class FollowerActor extends AbstractActor {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
+                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
                 logger.error("get followers ", e);
             }
         }

@@ -24,6 +24,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("select new scanner.dto.UserDTO(u.id, u.userName) from User u where u.scanStatus = 0")
     List<UserDTO> getUsersForScanProfile();
 
-    @Query("select new scanner.dto.UserDTO(u.id, u.userName, u.pk) from User u where u.scanStatus = 1")
-    List<UserDTO> getUsersForScanFollowers();
+    @Query("select u from User u where u.scanStatus = 1")
+    List<User> getUsersForScanFollowers();
 }
