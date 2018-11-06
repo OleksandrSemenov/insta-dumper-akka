@@ -1,6 +1,7 @@
 package scanner.actors;
 
 import akka.actor.*;
+import akka.remote.RemoteActorRefProvider;
 import akka.routing.ActorRefRoutee;
 import akka.routing.BalancingRoutingLogic;
 import akka.routing.BroadcastRoutingLogic;
@@ -25,7 +26,7 @@ public class ScannerActor extends AbstractActor {
     public static final String SCANNER_ACTOR_PATH = "user/scanner";
 
     public ScannerActor(){
-        fakeUserManagerActor = getContext().actorOf(Props.create(FakeUserManagerActor.class), "fakeUserManager");
+        //fakeUserManagerActor = getContext().actorOf(Props.create(FakeUserManagerActor.class), "fakeUserManager");
     }
 
     @Override
@@ -50,6 +51,8 @@ public class ScannerActor extends AbstractActor {
             fakeUserManagerActor.tell(loginSuccessfulMsg, getSelf());
         }).match(ScanUserFollowerMsg.class, scanUserFollowerMsg -> {
             followerRouter.route(scanUserFollowerMsg, self());
+        }).match(String.class, msg -> {
+            System.out.println("MSG = " + msg);
         }).build();
     }
 
