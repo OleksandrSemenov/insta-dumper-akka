@@ -5,6 +5,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.routing.ClusterRouterGroup;
 import akka.cluster.routing.ClusterRouterGroupSettings;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.routing.RandomGroup;
 import com.typesafe.config.ConfigFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import scanner.Scanner;
+import scanner.actors.FakeUserManagerActor;
 import scanner.actors.ScannerActor;
 
 import java.util.Collections;
@@ -31,6 +34,9 @@ public class Config {
     @Autowired
     private ActorSystem system;
 
+    private final int TOTAL_INSTANCES = 100;
+    private final boolean ALLOW_LOCAL_ROUTEES = true;
+
     @Bean
     public ActorSystem actorSystem(){
         final String[] ports = new String[] { "2551", "2552", };
@@ -43,26 +49,58 @@ public class Config {
                     .withFallback(ConfigFactory.load());
 
             system = ActorSystem.create("dump-system", config);
-            system.actorOf(Props.create(ScannerActor.class), "scanner");
             System.out.println("SYSTEM " + system.provider().getDefaultAddress().toString());
-        }
 
-        SPRING_EXTENSION_PROVIDER.get(system)
-                .initialize(applicationContext);
+            SPRING_EXTENSION_PROVIDER.get(system)
+                    .initialize(applicationContext);
+
+            system.actorOf(SPRING_EXTENSION_PROVIDER.get(system)
+                    .props("scannerActor"), "scanner");
+
+            final ClusterSingletonManagerSettings settings =
+                    ClusterSingletonManagerSettings.create(system);
+
+            system.actorOf(
+                    ClusterSingletonManager.props(
+                            Props.create(FakeUserManagerActor.class),
+                            null,
+                            settings),
+                    "fakeUserManager");
+        }
         return system;
     }
 
     @Bean(name = "scannerRouter")
     public ActorRef scannerRouter(){
-        final int totalInstances = 100;
         Iterable<String> routeesPaths = Collections.singletonList("/user/scanner");
-        boolean allowLocalRoutees = true;
         Set<String> useRoles = new HashSet<>();
 
         return system.actorOf(
                 new ClusterRouterGroup(new RandomGroup(routeesPaths),
-                        new ClusterRouterGroupSettings(totalInstances, routeesPaths,
-                                allowLocalRoutees, useRoles)).props(), "scannerRouter");
+                        new ClusterRouterGroupSettings(TOTAL_INSTANCES, routeesPaths,
+                                ALLOW_LOCAL_ROUTEES, useRoles)).props(), "scannerRouter");
+    }
+
+    @Bean(name = "workerRouter")
+    public ActorRef workerRouter(){
+        Iterable<String> routeesPaths = Collections.singletonList("/user/scanner/worker");
+        Set<String> useRoles = new HashSet<>();
+
+        return system.actorOf(
+                new ClusterRouterGroup(new RandomGroup(routeesPaths),
+                        new ClusterRouterGroupSettings(TOTAL_INSTANCES, routeesPaths,
+                                ALLOW_LOCAL_ROUTEES, useRoles)).props(), "workerRouter");
+    }
+
+    @Bean(name = "followerRouter")
+    public ActorRef followerRouter(){
+        Iterable<String> routeesPaths = Collections.singletonList("/user/scanner/follower");
+        Set<String> useRoles = new HashSet<>();
+
+        return system.actorOf(
+                new ClusterRouterGroup(new RandomGroup(routeesPaths),
+                        new ClusterRouterGroupSettings(TOTAL_INSTANCES, routeesPaths,
+                                ALLOW_LOCAL_ROUTEES, useRoles)).props(), "followerRouter");
     }
 
     @Bean

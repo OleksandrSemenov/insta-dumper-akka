@@ -1,3 +1,5 @@
+package scanner;
+
 import org.apache.http.HttpHost;
 import org.brunocvcunha.instagram4j.Instagram4j;
 import org.brunocvcunha.instagram4j.requests.InstagramSearchUsernameRequest;

@@ -1,19 +1,23 @@
 package scanner.actors.messages;
 
 import org.brunocvcunha.instagram4j.Instagram4j;
+import scanner.MyInstagram4j;
+import scanner.dto.Instagram4jDTO;
 
-public class LoginSuccessfulMsg {
-    private Instagram4j instagram;
+import java.io.Serializable;
 
-    public LoginSuccessfulMsg(Instagram4j instagram) {
+public class LoginSuccessfulMsg implements Serializable{
+    private Instagram4jDTO instagram;
+
+    public LoginSuccessfulMsg(Instagram4jDTO instagram) {
         this.instagram = instagram;
     }
 
-    public Instagram4j getInstagram() {
+    public Instagram4jDTO getInstagram() {
         return instagram;
     }
 
-    public void setInstagram(Instagram4j instagram) {
+    public void setInstagram(Instagram4jDTO instagram) {
         this.instagram = instagram;
     }
 }
