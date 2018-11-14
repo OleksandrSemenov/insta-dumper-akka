@@ -2,7 +2,9 @@ package scanner.actors.messages;
 
 import akka.routing.Router;
 
-public class TransferFollowersRouterMsg {
+import java.io.Serializable;
+
+public class TransferFollowersRouterMsg implements Serializable{
     private Router followersRouter;
 
     public TransferFollowersRouterMsg(Router followersRouter) {

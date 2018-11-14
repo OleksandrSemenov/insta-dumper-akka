@@ -2,7 +2,9 @@ package scanner.actors.messages;
 
 import scanner.entities.User;
 
-public class ScanUserFollowerMsg {
+import java.io.Serializable;
+
+public class ScanUserFollowerMsg implements Serializable{
     private User entityUser;
 
     public ScanUserFollowerMsg(User entityUser) {

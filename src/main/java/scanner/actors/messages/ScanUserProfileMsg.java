@@ -1,6 +1,8 @@
 package scanner.actors.messages;
 
-public class ScanUserProfileMsg {
+import java.io.Serializable;
+
+public class ScanUserProfileMsg implements Serializable{
     private int id;
     private String userName;
 

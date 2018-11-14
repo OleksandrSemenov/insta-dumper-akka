@@ -2,10 +2,9 @@ package scanner;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import scanner.actors.ScannerActor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import scanner.actors.messages.AddFakeUserMsg;
 import scanner.actors.messages.ScanUserFollowerMsg;
 import scanner.actors.messages.ScanUserProfileMsg;
@@ -17,8 +16,7 @@ import scanner.repository.FakeUserRepository;
 import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Scanner {
     @Autowired
@@ -27,18 +25,19 @@ public class Scanner {
     private UserRepository userRepository;
     private List<FakeUser> fakeUsers;
     private final String INSTAGRAM_USER_UKRAINE = "ukraine";
-    private ActorRef scannerActor;
-    @Autowired
-    private ActorSystem system;
     public Scanner() {
         fakeUsers = new ArrayList<>();
     }
     private boolean scannerWork;
     private final Logger logger = Logger.getLogger(Scanner.class);
+    @Autowired
+    @Qualifier("scannerRouter")
+    private ActorRef scannerRouter;
+    @Autowired
+    private ActorSystem system;
 
     @PostConstruct
     public void init() {
-        scannerActor = system.actorOf(Props.create(ScannerActor.class), "scanner");
         fakeUsers = getFakeUsers();
         fillSearchUsers();
         startWorkers();
@@ -48,13 +47,13 @@ public class Scanner {
 
     public void startWorkers() {
         for (FakeUser fakeUser : fakeUsers) {
-            scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+            scannerRouter.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
         }
     }
 
     public void startScanWithName(String name){
         startWorkers();
-        scannerActor.tell(new UserDTO(0, name), ActorRef.noSender());
+        scannerRouter.tell(new UserDTO(0, name), ActorRef.noSender());
     }
 
     public void stopWorkers() {
@@ -62,7 +61,7 @@ public class Scanner {
     }
 
     public void submitNewFakeUserWorker(FakeUser fakeUser) {
-        scannerActor.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
+        scannerRouter.tell(new AddFakeUserMsg(fakeUser.getUserName(), fakeUser.getPassword()), ActorRef.noSender());
     }
 
     public boolean isScannerWork() {
@@ -78,15 +77,15 @@ public class Scanner {
         List<User> scanFollowers = userRepository.getUsersForScanFollowers();
 
         if(scanProfile.isEmpty() && scanFollowers.isEmpty()){
-            scannerActor.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
+            scannerRouter.tell(new ScanUserProfileMsg(0, INSTAGRAM_USER_UKRAINE), ActorRef.noSender());
         }
 
         for(UserDTO scanProf : scanProfile){
-            scannerActor.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
+            scannerRouter.tell(new ScanUserProfileMsg(scanProf.getId(), scanProf.getUserName()), ActorRef.noSender());
         }
 
         for(User scanFollow : scanFollowers){
-            scannerActor.tell(new ScanUserFollowerMsg(scanFollow), ActorRef.noSender());
+            scannerRouter.tell(new ScanUserFollowerMsg(scanFollow), ActorRef.noSender());
         }
     }
 

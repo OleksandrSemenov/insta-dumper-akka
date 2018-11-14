@@ -1,6 +1,8 @@
 package scanner.actors.messages;
 
-public class AddFakeUserMsg {
+import java.io.Serializable;
+
+public class AddFakeUserMsg implements Serializable{
     private String userName;
     private String password;
 

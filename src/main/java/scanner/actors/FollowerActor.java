@@ -2,16 +2,19 @@ package scanner.actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.cluster.singleton.ClusterSingletonProxy;
+import akka.cluster.singleton.ClusterSingletonProxySettings;
 import org.apache.log4j.Logger;
 import org.brunocvcunha.instagram4j.Instagram4j;
 import org.brunocvcunha.instagram4j.requests.InstagramGetUserFollowersRequest;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramGetUserFollowersResult;
 import org.brunocvcunha.instagram4j.requests.payload.InstagramUserSummary;
-import org.bytedeco.javacv.FrameFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import scanner.MyInstagram4j;
 import scanner.actors.messages.*;
 import scanner.entities.Follower;
 import scanner.entities.ScanStatus;
@@ -19,11 +22,7 @@ import scanner.entities.User;
 import scanner.repository.FollowerRepository;
 import scanner.repository.UserRepository;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -34,11 +33,16 @@ public class FollowerActor extends AbstractActor {
     @Autowired
     private UserRepository userRepository;
     private ActorRef fakeUserManagerActor;
-    private ActorRef scannerActor;
+    @Autowired
+    @Qualifier("scannerRouter")
+    private ActorRef scannerRouter;
 
     public FollowerActor(){
-        fakeUserManagerActor = ScannerActor.getActor(getContext().getSystem(), ScannerActor.FAKE_USER_MANAGER_ACTOR_PATH);
-        scannerActor = ScannerActor.getActor(getContext().getSystem(), ScannerActor.SCANNER_ACTOR_PATH);
+        ClusterSingletonProxySettings proxySettings =
+                ClusterSingletonProxySettings.create(getContext().getSystem());
+        fakeUserManagerActor =
+                getContext().getSystem().actorOf(ClusterSingletonProxy.props("/user/fakeUserManager", proxySettings),
+                        "fakeUserManagerProxy" + UUID.randomUUID());
     }
 
     @Override
@@ -70,7 +74,7 @@ public class FollowerActor extends AbstractActor {
             userRepository.save(scanUserFollowerMsg.getEntityUser());
 
             for (User applyScanUser : users) {
-                scannerActor.tell(new ScanUserProfileMsg(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
+                scannerRouter.tell(new ScanUserProfileMsg(applyScanUser.getId(), applyScanUser.getUserName()), ActorRef.noSender());
             }
     }
 
@@ -78,13 +82,13 @@ public class FollowerActor extends AbstractActor {
         List<InstagramUserSummary> followers = new ArrayList<>();
         String nextMaxId = null;
         final int SLEEP_ONE_SECOND = 1000;
-        Instagram4j instagram = null;
+        MyInstagram4j instagram = null;
 
         while (true) {
             try {
-                instagram = FakeUserManagerActor.getFreeFakeUser(fakeUserManagerActor);
+                instagram = MyInstagram4j.fromDto(FakeUserManagerActor.getFreeFakeUser(fakeUserManagerActor));
                 InstagramGetUserFollowersResult followersResult = instagram.sendRequest(new InstagramGetUserFollowersRequest(id, nextMaxId));
-                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
+                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram.getDto()), getSelf());
                 logger.info("GET FOLLOWERS FROM ==================================== " + id);
 
                 if (followersResult == null || followersResult.getUsers() == null) {
@@ -105,7 +109,7 @@ public class FollowerActor extends AbstractActor {
                     e.printStackTrace();
                 }
             } catch (Exception e) {
-                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram), getSelf());
+                fakeUserManagerActor.tell(new SetFreeFakeUserMsg(instagram.getDto()), getSelf());
                 logger.error("get followers ", e);
             }
         }
