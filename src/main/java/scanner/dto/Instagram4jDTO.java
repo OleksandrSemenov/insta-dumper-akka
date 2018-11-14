@@ -3,8 +3,11 @@ package scanner.dto;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
+import org.apache.http.cookie.Cookie;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Instagram4jDTO implements Serializable{
     private String deviceId;
@@ -17,14 +20,14 @@ public class Instagram4jDTO implements Serializable{
     private String rankToken;
     private boolean isLoggedIn;
     private boolean debug;
-    private CookieStore cookieStore;
+    private Map<String, String> cookies;
     private String identifier;
     private String verificationCode;
     private String challengeUrl;
 
     public Instagram4jDTO(String deviceId, String uuid, String advertisingId, String username, String password,
                           HttpHost proxy, long userId, String rankToken, boolean isLoggedIn,
-                          boolean debug, CookieStore cookieStore, String identifier, String verificationCode, String challengeUrl) {
+                          boolean debug, Map<String, String> cookies, String identifier, String verificationCode, String challengeUrl) {
         this.deviceId = deviceId;
         this.uuid = uuid;
         this.advertisingId = advertisingId;
@@ -35,10 +38,10 @@ public class Instagram4jDTO implements Serializable{
         this.rankToken = rankToken;
         this.isLoggedIn = isLoggedIn;
         this.debug = debug;
-        this.cookieStore = cookieStore;
         this.identifier = identifier;
         this.verificationCode = verificationCode;
         this.challengeUrl = challengeUrl;
+        this.cookies = cookies;
     }
 
     public String getDeviceId() {
@@ -81,10 +84,6 @@ public class Instagram4jDTO implements Serializable{
         return debug;
     }
 
-    public CookieStore getCookieStore() {
-        return cookieStore;
-    }
-
     public String getIdentifier() {
         return identifier;
     }
@@ -95,5 +94,9 @@ public class Instagram4jDTO implements Serializable{
 
     public String getChallengeUrl() {
         return challengeUrl;
+    }
+
+    public Map<String, String> getCookies() {
+        return cookies;
     }
 }

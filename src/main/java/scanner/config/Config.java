@@ -8,6 +8,7 @@ import akka.cluster.routing.ClusterRouterGroupSettings;
 import akka.cluster.singleton.ClusterSingletonManager;
 import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.routing.RandomGroup;
+import com.esotericsoftware.minlog.Log;
 import com.typesafe.config.ConfigFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -39,6 +40,7 @@ public class Config {
 
     @Bean
     public ActorSystem actorSystem(){
+        //Log.set(0);
         final String[] ports = new String[] { "2551", "2552", };
         ActorSystem system = null;
 
