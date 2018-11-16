@@ -1,6 +1,7 @@
 package scanner.actors;
 
 import akka.actor.*;
+import akka.cluster.Cluster;
 import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.RemoteActorRefProvider;
@@ -36,12 +37,16 @@ public class ScannerActor extends AbstractActor {
     @Qualifier("followerRouter")
     private ActorRef followerRouter;
     private ActorRef fakeUserManagerActor;
+    private Cluster cluster;
+
     public ScannerActor(){
         ClusterSingletonProxySettings proxySettings =
                 ClusterSingletonProxySettings.create(getContext().getSystem());
          fakeUserManagerActor =
                 getContext().getSystem().actorOf(ClusterSingletonProxy.props("/user/fakeUserManager", proxySettings),
                         "fakeUserManagerProxy" + UUID.randomUUID());
+        cluster = Cluster.get(getContext().getSystem());
+        System.out.println("SCANNER ACTOR NODE PATH = " + cluster.selfAddress().toString());
     }
 
     @Override
@@ -54,6 +59,7 @@ public class ScannerActor extends AbstractActor {
             logger.info("added new workerActor " + fakeUserMsg.getUserName());
             worker.tell(fakeUserMsg, self());
         }).match(ScanUserProfileMsg.class, scanUserProfileMsg -> {
+            logger.info("SCANNER ACTOR NODE PATH = " + cluster.selfAddress().toString());
             workerRouter.tell(scanUserProfileMsg, self());
         }).match(SimpleMessages.LOGIN_FAILED.getClass(), message -> {
             getSender().tell(PoisonPill.getInstance(), ActorRef.noSender());

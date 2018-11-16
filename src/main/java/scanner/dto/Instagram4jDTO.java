@@ -20,14 +20,16 @@ public class Instagram4jDTO implements Serializable{
     private String rankToken;
     private boolean isLoggedIn;
     private boolean debug;
-    private Map<String, String> cookies;
+    private CookieStore cookieStore;
     private String identifier;
     private String verificationCode;
     private String challengeUrl;
 
+    public Instagram4jDTO(){}
+
     public Instagram4jDTO(String deviceId, String uuid, String advertisingId, String username, String password,
                           HttpHost proxy, long userId, String rankToken, boolean isLoggedIn,
-                          boolean debug, Map<String, String> cookies, String identifier, String verificationCode, String challengeUrl) {
+                          boolean debug, CookieStore cookieStore, String identifier, String verificationCode, String challengeUrl) {
         this.deviceId = deviceId;
         this.uuid = uuid;
         this.advertisingId = advertisingId;
@@ -41,7 +43,7 @@ public class Instagram4jDTO implements Serializable{
         this.identifier = identifier;
         this.verificationCode = verificationCode;
         this.challengeUrl = challengeUrl;
-        this.cookies = cookies;
+        this.cookieStore = cookieStore;
     }
 
     public String getDeviceId() {
@@ -96,7 +98,7 @@ public class Instagram4jDTO implements Serializable{
         return challengeUrl;
     }
 
-    public Map<String, String> getCookies() {
-        return cookies;
+    public CookieStore getCookieStore() {
+        return cookieStore;
     }
 }

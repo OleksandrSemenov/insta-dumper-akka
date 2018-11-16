@@ -2,9 +2,15 @@ package scanner;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import com.typesafe.config.ConfigFactory;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import scanner.actors.FakeUserManagerActor;
 import scanner.actors.messages.AddFakeUserMsg;
 import scanner.actors.messages.ScanUserFollowerMsg;
 import scanner.actors.messages.ScanUserProfileMsg;
@@ -17,6 +23,8 @@ import scanner.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+
+import static scanner.config.SpringExtension.SPRING_EXTENSION_PROVIDER;
 
 public class Scanner {
     @Autowired
@@ -35,6 +43,8 @@ public class Scanner {
     private ActorRef scannerRouter;
     @Autowired
     private ActorSystem system;
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @PostConstruct
     public void init() {
@@ -53,7 +63,7 @@ public class Scanner {
 
     public void startScanWithName(String name){
         startWorkers();
-        scannerRouter.tell(new UserDTO(0, name), ActorRef.noSender());
+        scannerRouter.tell(new ScanUserProfileMsg(0, name), ActorRef.noSender());
     }
 
     public void stopWorkers() {
@@ -70,6 +80,32 @@ public class Scanner {
 
     public void setScannerWork(boolean scannerWork) {
         this.scannerWork = scannerWork;
+    }
+
+    public void addNode(int port){
+        com.typesafe.config.Config config = ConfigFactory.parseString(
+                "akka.remote.netty.tcp.port=" + port + "\n" +
+                        "akka.remote.artery.canonical.port=" + port)
+                .withFallback(ConfigFactory.load());
+
+        ActorSystem newNode = ActorSystem.create("dump-system", config);
+        System.out.println("SYSTEM " + newNode.provider().getDefaultAddress().toString());
+
+        SPRING_EXTENSION_PROVIDER.get(newNode)
+                .initialize(applicationContext);
+
+        newNode.actorOf(SPRING_EXTENSION_PROVIDER.get(newNode)
+                .props("scannerActor"), "scanner");
+
+        final ClusterSingletonManagerSettings settings =
+                ClusterSingletonManagerSettings.create(system);
+
+        newNode.actorOf(
+                ClusterSingletonManager.props(
+                        Props.create(FakeUserManagerActor.class),
+                        null,
+                        settings),
+                "fakeUserManager");
     }
 
     private void sendScanUsers(){
@@ -99,7 +135,7 @@ public class Scanner {
         List<FakeUser> fakeUsers = fakeUserRepository.findAll();
 
         if(fakeUsers.isEmpty()) {
-            FakeUser fakeUser = new FakeUser("vasyarogov1959", "badalandabadec");
+            FakeUser fakeUser = new FakeUser("zibrovka@mail.ru", "zibrovkinVasya");
             fakeUserRepository.save(fakeUser);
             fakeUsers.add(fakeUser);
         }

@@ -114,6 +114,12 @@ public class WorkerActor extends AbstractActor{
     private InstagramUser getUser(String userName) {
         InstagramSearchUsernameResult resutUser = null;
         try {
+            try {
+                Thread.sleep(700);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             resutUser = instagram.sendRequest(new InstagramSearchUsernameRequest(userName));
         } catch (IOException e) {
             logger.error("", e);
