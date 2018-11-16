@@ -34,14 +34,8 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
     }
 
     public Instagram4jDTO getDto(){
-        Map<String, String> cookies = new HashMap<>();
-
-        for(Cookie cookie : this.cookieStore.getCookies()){
-            cookies.put(cookie.getName(), cookie.getValue());
-        }
-
         return new Instagram4jDTO(this.deviceId, this.uuid, this.advertisingId, this.username,
-                this.password, this.proxy, this.userId, this.rankToken, this.isLoggedIn, this.debug, this.cookieStore, this.identifier, this.verificationCode, this.challengeUrl);
+                this.password, this.proxy, this.userId, this.rankToken, this.isLoggedIn, this.debug, this.cookieStore.getCookies(), this.identifier, this.verificationCode, this.challengeUrl);
     }
 
     public static MyInstagram4j fromDto(Instagram4jDTO dto){
@@ -49,6 +43,12 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
     }
 
     private void setFields(Instagram4jDTO dto){
+        BasicCookieStore cookieStore = new BasicCookieStore();
+
+        for(Cookie cookie : dto.getCookies()){
+            cookieStore.addCookie(cookie);
+        }
+
         this.advertisingId = dto.getAdvertisingId();
         this.challengeUrl = dto.getChallengeUrl();
         this.debug = dto.isDebug();
@@ -60,7 +60,7 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
         this.userId = dto.getUserId();
         this.uuid = dto.getUuid();
         this.verificationCode = dto.getVerificationCode();
-        this.cookieStore = dto.getCookieStore();
+        this.cookieStore = cookieStore;
         initDefaultHttpClient();
     }
 

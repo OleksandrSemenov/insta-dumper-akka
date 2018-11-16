@@ -4,9 +4,11 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Instagram4jDTO implements Serializable{
@@ -20,7 +22,7 @@ public class Instagram4jDTO implements Serializable{
     private String rankToken;
     private boolean isLoggedIn;
     private boolean debug;
-    private CookieStore cookieStore;
+    private List<Cookie> cookies;
     private String identifier;
     private String verificationCode;
     private String challengeUrl;
@@ -29,7 +31,7 @@ public class Instagram4jDTO implements Serializable{
 
     public Instagram4jDTO(String deviceId, String uuid, String advertisingId, String username, String password,
                           HttpHost proxy, long userId, String rankToken, boolean isLoggedIn,
-                          boolean debug, CookieStore cookieStore, String identifier, String verificationCode, String challengeUrl) {
+                          boolean debug, List<Cookie> cookies, String identifier, String verificationCode, String challengeUrl) {
         this.deviceId = deviceId;
         this.uuid = uuid;
         this.advertisingId = advertisingId;
@@ -43,7 +45,7 @@ public class Instagram4jDTO implements Serializable{
         this.identifier = identifier;
         this.verificationCode = verificationCode;
         this.challengeUrl = challengeUrl;
-        this.cookieStore = cookieStore;
+        this.cookies = cookies;
     }
 
     public String getDeviceId() {
@@ -98,7 +100,7 @@ public class Instagram4jDTO implements Serializable{
         return challengeUrl;
     }
 
-    public CookieStore getCookieStore() {
-        return cookieStore;
+    public List<Cookie> getCookies() {
+        return cookies;
     }
 }

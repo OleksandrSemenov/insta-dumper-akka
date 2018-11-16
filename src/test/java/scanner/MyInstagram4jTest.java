@@ -18,7 +18,7 @@ import java.io.*;
 public class MyInstagram4jTest {
     @Test
     public void testSerialization(){
-        MyInstagram4j instagram = new MyInstagram4j("vasyarogov1959", "badalandabadec");
+        MyInstagram4j instagram = new MyInstagram4j("zibrovka@mail.ru", "zibrovkinVasya");
         MyInstagram4j deserialize = null;
         Instagram4jDTO dto = null;
         instagram.setup();
