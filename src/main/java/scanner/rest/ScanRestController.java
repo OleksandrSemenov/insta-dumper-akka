@@ -13,7 +13,7 @@ public class ScanRestController {
     @Autowired
     private Scanner scanner;
 
-    @RequestMapping(value = "/start-scan/{name}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/start-scan/{name}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public void startScan(@PathVariable("name") String name){
         if(scanner.isScannerWork()){

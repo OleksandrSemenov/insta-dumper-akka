@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 public class MyInstagram4j extends Instagram4j implements Serializable{
+    public MyInstagram4j(){
+        super(null, null);
+    }
     public MyInstagram4j(Instagram4jDTO dto){
         super(dto.getUsername(), dto.getPassword());
         setFields(dto);
@@ -31,14 +34,8 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
     }
 
     public Instagram4jDTO getDto(){
-        Map<String, String> cookies = new HashMap<>();
-
-        for(Cookie cookie : this.cookieStore.getCookies()){
-            cookies.put(cookie.getName(), cookie.getValue());
-        }
-
         return new Instagram4jDTO(this.deviceId, this.uuid, this.advertisingId, this.username,
-                this.password, this.proxy, this.userId, this.rankToken, this.isLoggedIn, this.debug, cookies, this.identifier, this.verificationCode, this.challengeUrl);
+                this.password, this.proxy, this.userId, this.rankToken, this.isLoggedIn, this.debug, this.cookieStore.getCookies(), this.identifier, this.verificationCode, this.challengeUrl);
     }
 
     public static MyInstagram4j fromDto(Instagram4jDTO dto){
@@ -46,6 +43,12 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
     }
 
     private void setFields(Instagram4jDTO dto){
+        BasicCookieStore cookieStore = new BasicCookieStore();
+
+        for(Cookie cookie : dto.getCookies()){
+            cookieStore.addCookie(cookie);
+        }
+
         this.advertisingId = dto.getAdvertisingId();
         this.challengeUrl = dto.getChallengeUrl();
         this.debug = dto.isDebug();
@@ -57,19 +60,6 @@ public class MyInstagram4j extends Instagram4j implements Serializable{
         this.userId = dto.getUserId();
         this.uuid = dto.getUuid();
         this.verificationCode = dto.getVerificationCode();
-
-        List<BasicClientCookie> clientCookies = new ArrayList<>();
-        for(Map.Entry<String, String> mycookie : dto.getCookies().entrySet()){
-            BasicClientCookie cookie = new BasicClientCookie(mycookie.getKey(), mycookie.getValue());
-            clientCookies.add(cookie);
-        }
-
-        BasicCookieStore cookieStore = new BasicCookieStore();
-
-        for(BasicClientCookie basicCookie : clientCookies){
-            cookieStore.addCookie(basicCookie);
-        }
-
         this.cookieStore = cookieStore;
         initDefaultHttpClient();
     }

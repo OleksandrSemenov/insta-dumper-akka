@@ -4,9 +4,11 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Instagram4jDTO implements Serializable{
@@ -20,14 +22,16 @@ public class Instagram4jDTO implements Serializable{
     private String rankToken;
     private boolean isLoggedIn;
     private boolean debug;
-    private Map<String, String> cookies;
+    private List<Cookie> cookies;
     private String identifier;
     private String verificationCode;
     private String challengeUrl;
 
+    public Instagram4jDTO(){}
+
     public Instagram4jDTO(String deviceId, String uuid, String advertisingId, String username, String password,
                           HttpHost proxy, long userId, String rankToken, boolean isLoggedIn,
-                          boolean debug, Map<String, String> cookies, String identifier, String verificationCode, String challengeUrl) {
+                          boolean debug, List<Cookie> cookies, String identifier, String verificationCode, String challengeUrl) {
         this.deviceId = deviceId;
         this.uuid = uuid;
         this.advertisingId = advertisingId;
@@ -96,7 +100,7 @@ public class Instagram4jDTO implements Serializable{
         return challengeUrl;
     }
 
-    public Map<String, String> getCookies() {
+    public List<Cookie> getCookies() {
         return cookies;
     }
 }
